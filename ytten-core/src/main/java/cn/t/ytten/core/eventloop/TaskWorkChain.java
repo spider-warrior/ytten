@@ -27,7 +27,6 @@ public class TaskWorkChain<I, O> {
         return new TaskWorkChain<>(Function.identity());
     }
 
-
     public static void main(String[] args) {
         TaskWorkChain<String, String> chain = newInstance();
         chain.chain(num -> {

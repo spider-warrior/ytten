@@ -6,9 +6,9 @@ import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 
 public class EventLoopTask<V> {
-    private Callable<V> callable;
-    private Consumer<Throwable> errorHandler;
-    private TaskWorkChain<V, ?> taskWorkChain;
+    private final Callable<V> callable;
+    private final Consumer<Throwable> errorHandler;
+    private final TaskWorkChain<V, ?> taskWorkChain;
     public void run() {
         try {
             V v = callable.call();

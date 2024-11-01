@@ -33,7 +33,10 @@ public class ServerBootstrap {
         acceptEventLoop.addTask(() -> {
             //构建ServerSocketChannel
             return bind(port);
-        }).chain(channel -> initChannelContext(channel));
+        }).chain(channel -> {
+            //初始化context
+            return initChannelContext(channel);
+        });
     }
 
     public ServerBootstrap(SingleThreadEventLoop acceptEventLoop, SingleThreadEventLoop ioHandleEventLoop) {
