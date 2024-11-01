@@ -11,18 +11,20 @@ import java.nio.channels.SocketChannel;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Callable;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.PriorityBlockingQueue;
+import java.util.function.Consumer;
 
 public class SingleThreadEventLoop implements Runnable {
 
     private static final int defaultSelectTimeInMills = 3000;
     private static final int defaultIoLoopTimes = 5;
     private final ByteBuffer tmp = ByteBuffer.allocate(1024*1024);
-    private final BlockingQueue<Runnable> inTimeTask = new LinkedBlockingQueue<>();
+    private final BlockingQueue<EventLoopTask<?>> inTimeTask = new LinkedBlockingQueue<>();
     private final PriorityBlockingQueue<EventLoopDelayTask> delayTaskQueue = new PriorityBlockingQueue<>(10, Comparator.comparingLong(EventLoopDelayTask::getExecuteTimePointInMills));
     private final Selector selector;
-    private volatile Thread thread;
+    private final Thread thread;
     private volatile int state = EventLoopState.NOT_STARTED;
 
     public boolean inEventLoop() {
@@ -31,7 +33,6 @@ public class SingleThreadEventLoop implements Runnable {
 
     @Override
     public void run() {
-        thread = Thread.currentThread();
         if(state == EventLoopState.NOT_STARTED) {
             state = EventLoopState.STARTED;
             try {
@@ -97,11 +98,11 @@ public class SingleThreadEventLoop implements Runnable {
 
     private void runInTimeTask() {
         while (true) {
-            Runnable runnable = inTimeTask.poll();
-            if(runnable == null) {
+            EventLoopTask<?> eventLoopTask = inTimeTask.poll();
+            if(eventLoopTask == null) {
                 break;
             }
-            runnable.run();
+            eventLoopTask.run();
         }
     }
 
@@ -115,7 +116,27 @@ public class SingleThreadEventLoop implements Runnable {
         }
     }
 
-    public SingleThreadEventLoop() throws IOException {
+    public <V> TaskWorkChain<V, V> addTask(Callable<V> callable) {
+        return this.addTask(callable, null);
+    }
+
+    public <V> TaskWorkChain<V, V> addTask(Callable<V> callable, Consumer<Throwable> errorHandler) {
+        TaskWorkChain<V, V> taskWorkChain = TaskWorkChain.newInstance();
+        inTimeTask.add(new EventLoopTask<>(callable, errorHandler, taskWorkChain));
+        return taskWorkChain;
+    }
+
+    public void addDelayTask(EventLoopDelayTask delayTask) {
+        delayTaskQueue.add(delayTask);
+    }
+
+    public void nextLoop() {
+        this.selector.wakeup();
+    }
+
+    public SingleThreadEventLoop(String name) throws IOException {
         this.selector = Selector.open();
+        this.thread = new Thread(this, name);
+        this.thread.start();
     }
 }
