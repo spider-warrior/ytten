@@ -41,6 +41,8 @@ public class ServerBootstrap {
             // 监听事件
             ctx.register(acceptEventLoop.getSelector(), SelectionKey.OP_ACCEPT);
         }, throwable -> System.out.println("acceptEventLoop异常: " + throwable.getMessage()));
+        Thread acceptThread = new Thread(acceptEventLoop);
+        acceptThread.start();
     }
 
     public ServerBootstrap(SingleThreadEventLoop acceptEventLoop, SingleThreadEventLoop ioHandleEventLoop) {

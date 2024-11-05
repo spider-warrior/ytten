@@ -33,57 +33,55 @@ public class SingleThreadEventLoop implements Runnable {
 
     @Override
     public void run() {
-        if(state == EventLoopState.NOT_STARTED) {
-            state = EventLoopState.STARTED;
-            try {
-                while (state == EventLoopState.STARTED) {
-                    int count = selector.select(nextSelectTimeout());
-                    if(count > 0) {
-                        Iterator<SelectionKey> it = selector.selectedKeys().iterator();
-                        while (it.hasNext()) {
-                            SelectionKey key = it.next();
-                            it.remove();
-                            if(key.isConnectable()) {
+        state = EventLoopState.STARTED;
+        try {
+            while (state == EventLoopState.STARTED) {
+                int count = selector.select(nextSelectTimeout());
+                if(count > 0) {
+                    Iterator<SelectionKey> it = selector.selectedKeys().iterator();
+                    while (it.hasNext()) {
+                        SelectionKey key = it.next();
+                        it.remove();
+                        if(key.isConnectable()) {
 
-                            } else if(key.isAcceptable()) {
+                        } else if(key.isAcceptable()) {
 
-                            }
-                            if(key.isWritable()) {
+                        }
+                        if(key.isWritable()) {
 
-                            }
-                            if(key.isReadable()) {
-                                SocketChannel socketChannel = (SocketChannel)key.channel();
-                                ChannelContext ctx = (ChannelContext)key.attachment();
-                                int lastReadLength = 0;
-                                for (int i = 0; i < defaultIoLoopTimes; i++) {
-                                    lastReadLength = socketChannel.read(tmp);
-                                    if (lastReadLength > 0) {
-                                        tmp.flip();
-                                        ctx.getReadCache().writeBytes(tmp);
-                                        tmp.clear();
-                                        if(lastReadLength < tmp.capacity()) {
-                                            //消息已读完
-                                            break;
-                                        }
-                                    } else {
+                        }
+                        if(key.isReadable()) {
+                            SocketChannel socketChannel = (SocketChannel)key.channel();
+                            ChannelContext ctx = (ChannelContext)key.attachment();
+                            int lastReadLength = 0;
+                            for (int i = 0; i < defaultIoLoopTimes; i++) {
+                                lastReadLength = socketChannel.read(tmp);
+                                if (lastReadLength > 0) {
+                                    tmp.flip();
+                                    ctx.getReadCache().writeBytes(tmp);
+                                    tmp.clear();
+                                    if(lastReadLength < tmp.capacity()) {
+                                        //消息已读完
                                         break;
                                     }
-                                }
-                                if(lastReadLength > -1) {
-                                    ctx.invokeChannelRead();
                                 } else {
-                                    //连接已关闭
-                                    ctx.invokeChannelClose();
+                                    break;
                                 }
+                            }
+                            if(lastReadLength > -1) {
+                                ctx.invokeChannelRead();
+                            } else {
+                                //连接已关闭
+                                ctx.invokeChannelClose();
                             }
                         }
                     }
                 }
-            } catch (Throwable t) {
-                System.out.println(ExceptionUtil.getErrorMessage(t));
-            } finally {
-                try { selector.close();} catch (Exception ignore) {};
             }
+        } catch (Throwable t) {
+            System.out.println(ExceptionUtil.getErrorMessage(t));
+        } finally {
+            try { selector.close();} catch (Exception ignore) {};
         }
     }
 
