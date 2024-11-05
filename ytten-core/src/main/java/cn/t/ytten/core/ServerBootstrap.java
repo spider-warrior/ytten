@@ -8,6 +8,7 @@ import cn.t.ytten.core.eventloop.SingleThreadEventLoop;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.StandardSocketOptions;
+import java.nio.channels.SelectionKey;
 import java.nio.channels.ServerSocketChannel;
 
 public class ServerBootstrap {
@@ -23,7 +24,7 @@ public class ServerBootstrap {
         return serverSocketChannel;
     }
 
-    public ChannelContext initChannelContext(ServerSocketChannel serverSocketChannel) {
+    private ChannelContext initChannelContext(ServerSocketChannel serverSocketChannel) {
         ChannelContext ctx = ChannelContext.serverSocketChannelContext(serverSocketChannel, acceptEventLoop);
         ctx.getPipeline().addChannelHandlerLast(new ConnectionAcceptHandler(new ServerChannelInitializer()));
         return ctx;
@@ -36,7 +37,10 @@ public class ServerBootstrap {
         }).chain(channel -> {
             //初始化context
             return initChannelContext(channel);
-        });
+        }).last(ctx -> {
+            // 监听事件
+            ctx.register(acceptEventLoop.getSelector(), SelectionKey.OP_ACCEPT);
+        }, throwable -> System.out.println("acceptEventLoop异常: " + throwable.getMessage()));
     }
 
     public ServerBootstrap(SingleThreadEventLoop acceptEventLoop, SingleThreadEventLoop ioHandleEventLoop) {

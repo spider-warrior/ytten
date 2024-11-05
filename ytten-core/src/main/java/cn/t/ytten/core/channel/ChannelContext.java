@@ -1,8 +1,11 @@
 package cn.t.ytten.core.channel;
 
 import cn.t.ytten.core.eventloop.SingleThreadEventLoop;
+import cn.t.ytten.core.exception.ChannelException;
 
+import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SelectableChannel;
+import java.nio.channels.Selector;
 
 public class ChannelContext {
 
@@ -69,6 +72,18 @@ public class ChannelContext {
 
     public UnPooledHeapByteBuf getWriteCache() {
         return writeCache;
+    }
+
+    public void register(Selector selector, int ops) {
+        this.register(selector, ops, null);
+    }
+
+    public void register(Selector selector, int ops, Object attachment) {
+        try {
+            this.selectableChannel.register(selector, ops, attachment);
+        } catch (ClosedChannelException e) {
+            throw new ChannelException(e);
+        }
     }
 
     public ChannelContext(SelectableChannel selectableChannel, SingleThreadEventLoop eventLoop, UnPooledHeapByteBuf readCache, UnPooledHeapByteBuf writeCache) {

@@ -134,6 +134,10 @@ public class SingleThreadEventLoop implements Runnable {
         this.selector.wakeup();
     }
 
+    public Selector getSelector() {
+        return selector;
+    }
+
     public SingleThreadEventLoop(String name) throws IOException {
         this.selector = Selector.open();
         this.thread = new Thread(this, name);

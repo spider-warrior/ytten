@@ -1,9 +1,11 @@
 package cn.t.ytten.core.eventloop;
 
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class TaskWorkChain<I, O> {
     private final Function<I, O> fn;
+    private Consumer<Throwable> errorConsumer;
     private TaskWorkChain<O, ?> nextNode;
 
     private TaskWorkChain(Function<I, O> fn) {
@@ -11,9 +13,21 @@ public class TaskWorkChain<I, O> {
     }
 
     public void process(I input) {
-        O output = fn.apply(input);
-        if (nextNode != null) {
-            nextNode.process(output);
+        try {
+            O output = fn.apply(input);
+            if (nextNode != null) {
+                nextNode.process(output);
+            }
+        } catch (Throwable t) {
+            if(errorConsumer != null) {
+                errorConsumer.accept(t);
+            } else {
+                if(nextNode == null) {
+                    throw t;
+                } else {
+                    nextNode.errorConsumer.accept(t);
+                }
+            }
         }
     }
 
@@ -21,6 +35,18 @@ public class TaskWorkChain<I, O> {
         TaskWorkChain<O, OO> nextNode = new TaskWorkChain<>(fn);
         this.nextNode = nextNode;
         return nextNode;
+    }
+
+    public void last(Consumer<O> consumer) {
+        this.chain(o -> {
+            consumer.accept(o);
+            return null;
+        });
+    }
+
+    public void last(Consumer<O> consumer, Consumer<Throwable> errorConsumer) {
+        this.last(consumer);
+        this.errorConsumer = errorConsumer;
     }
 
     public static <I> TaskWorkChain<I, I> newInstance() {
