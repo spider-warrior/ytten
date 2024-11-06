@@ -114,14 +114,14 @@ public class SingleThreadEventLoop implements Runnable {
         }
     }
 
-    public <V> TaskWorkChain<V, V> addTask(Callable<V> callable) {
+    public <V> ExecuteChain<V> addTask(Callable<V> callable) {
         return this.addTask(callable, null);
     }
 
-    public <V> TaskWorkChain<V, V> addTask(Callable<V> callable, Consumer<Throwable> errorHandler) {
-        TaskWorkChain<V, V> taskWorkChain = TaskWorkChain.newInstance();
-        inTimeTask.add(new EventLoopTask<>(callable, errorHandler, taskWorkChain));
-        return taskWorkChain;
+    public <V> ExecuteChain<V> addTask(Callable<V> callable, Consumer<Throwable> errorHandler) {
+        ExecuteChain<V> chain = new ExecuteChain<>(callable);
+        inTimeTask.add(new EventLoopTask<>(chain, errorHandler));
+        return chain;
     }
 
     public void addDelayTask(EventLoopDelayTask delayTask) {

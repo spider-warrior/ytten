@@ -24,9 +24,9 @@ public class ServerBootstrap {
         return serverSocketChannel;
     }
 
-    private ChannelContext initChannelContext(ServerSocketChannel serverSocketChannel) {
+    private ChannelContext initChannelContext(ServerSocketChannel serverSocketChannel, SingleThreadEventLoop ioHandleEventLoop) {
         ChannelContext ctx = ChannelContext.serverSocketChannelContext(serverSocketChannel, acceptEventLoop);
-        ctx.getPipeline().addChannelHandlerLast(new ConnectionAcceptHandler(new ServerChannelInitializer()));
+        ctx.getPipeline().addChannelHandlerLast(new ConnectionAcceptHandler(new ServerChannelInitializer(), ioHandleEventLoop));
         return ctx;
     }
 
@@ -34,15 +34,18 @@ public class ServerBootstrap {
         acceptEventLoop.addTask(() -> {
             //构建ServerSocketChannel
             return bind(port);
-        }).chain(channel -> {
+        }).map(channel -> {
             //初始化context
-            return initChannelContext(channel);
-        }).last(ctx -> {
+            return initChannelContext(channel, ioHandleEventLoop);
+        }).map(ctx -> {
             // 监听事件
             ctx.register(acceptEventLoop.getSelector(), SelectionKey.OP_ACCEPT);
-        }, throwable -> System.out.println("acceptEventLoop异常: " + throwable.getMessage()));
+            return ctx;
+        });
         Thread acceptThread = new Thread(acceptEventLoop);
         acceptThread.start();
+        Thread ioThread = new Thread(ioHandleEventLoop);
+        ioThread.start();
     }
 
     public ServerBootstrap(SingleThreadEventLoop acceptEventLoop, SingleThreadEventLoop ioHandleEventLoop) {

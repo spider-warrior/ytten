@@ -3,13 +3,15 @@ package cn.t.ytten.core.channel.handler;
 import cn.t.ytten.core.channel.ChannelContext;
 import cn.t.ytten.core.channel.ChannelHandler;
 import cn.t.ytten.core.channel.initializer.ServerChannelInitializer;
+import cn.t.ytten.core.eventloop.SingleThreadEventLoop;
 
 import java.net.StandardSocketOptions;
 import java.nio.channels.SocketChannel;
 
 public class ConnectionAcceptHandler implements ChannelHandler {
 
-    private ServerChannelInitializer initializer;
+    private final ServerChannelInitializer initializer;
+    private final SingleThreadEventLoop ioHandleEventLoop;
 
     @Override
     public void read(ChannelContext ctx, Object msg) throws Exception {
@@ -21,7 +23,8 @@ public class ConnectionAcceptHandler implements ChannelHandler {
         ctx.getEventLoop().addTask(()-> null);
     }
 
-    public ConnectionAcceptHandler(ServerChannelInitializer initializer) {
+    public ConnectionAcceptHandler(ServerChannelInitializer initializer, SingleThreadEventLoop ioHandleEventLoop) {
         this.initializer = initializer;
+        this.ioHandleEventLoop = ioHandleEventLoop;
     }
 }
