@@ -3,6 +3,7 @@ package cn.t.ytten.core;
 import cn.t.ytten.core.channel.ChannelContext;
 import cn.t.ytten.core.channel.handler.ConnectionAcceptHandler;
 import cn.t.ytten.core.channel.initializer.ServerChannelInitializer;
+import cn.t.ytten.core.eventloop.ExecuteChain;
 import cn.t.ytten.core.eventloop.SingleThreadEventLoop;
 
 import java.io.IOException;
@@ -31,17 +32,22 @@ public class ServerBootstrap {
     }
 
     public void start(int port) {
-        acceptEventLoop.addTask(() -> {
+        acceptEventLoop.addTask(new ExecuteChain<>(() -> {
             //构建ServerSocketChannel
             return bind(port);
         }).map(channel -> {
+            System.out.println("端口绑定成功: " + channel.socket());
             //初始化context
             return initChannelContext(channel, ioHandleEventLoop);
         }).map(ctx -> {
+            System.out.println("serverChannel初始化完毕");
             // 监听事件
             ctx.register(acceptEventLoop.getSelector(), SelectionKey.OP_ACCEPT);
             return ctx;
-        });
+        }).map(ctx -> {
+            System.out.println("accept事件注册成功");
+            return ctx;
+        }));
         Thread acceptThread = new Thread(acceptEventLoop);
         acceptThread.start();
         Thread ioThread = new Thread(ioHandleEventLoop);

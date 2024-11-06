@@ -11,17 +11,15 @@ import java.nio.channels.SocketChannel;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.Callable;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.PriorityBlockingQueue;
-import java.util.function.Consumer;
 
 public class SingleThreadEventLoop implements Runnable {
 
     private static final int defaultSelectTimeInMills = 3000;
     private static final int defaultIoLoopTimes = 5;
     private final ByteBuffer tmp = ByteBuffer.allocate(1024*1024);
-    private final BlockingQueue<EventLoopTask<?>> inTimeTask = new LinkedBlockingQueue<>();
+    private final BlockingQueue<ExecuteChain<?>> inTimeTask = new LinkedBlockingQueue<>();
     private final PriorityBlockingQueue<EventLoopDelayTask> delayTaskQueue = new PriorityBlockingQueue<>(10, Comparator.comparingLong(EventLoopDelayTask::getExecuteTimePointInMills));
     private final Selector selector;
     private final Thread thread;
@@ -100,11 +98,11 @@ public class SingleThreadEventLoop implements Runnable {
 
     private void runInTimeTask() {
         while (true) {
-            EventLoopTask<?> eventLoopTask = inTimeTask.poll();
+            ExecuteChain<?> eventLoopTask = inTimeTask.poll();
             if(eventLoopTask == null) {
                 break;
             }
-            eventLoopTask.run();
+            eventLoopTask.execute();
         }
     }
 
@@ -118,14 +116,9 @@ public class SingleThreadEventLoop implements Runnable {
         }
     }
 
-    public <V> ExecuteChain<V> addTask(Callable<V> callable) {
-        return this.addTask(callable, null);
-    }
 
-    public <V> ExecuteChain<V> addTask(Callable<V> callable, Consumer<Throwable> errorHandler) {
-        ExecuteChain<V> chain = new ExecuteChain<>(callable);
-        inTimeTask.add(new EventLoopTask<>(chain, errorHandler));
-        return chain;
+    public <V> void addTask(ExecuteChain<V> chain) {
+        inTimeTask.add(chain);
     }
 
     public void addDelayTask(EventLoopDelayTask delayTask) {

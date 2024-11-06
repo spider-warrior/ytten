@@ -13,13 +13,22 @@ public class ExecuteChain<T> {
         this.callable = callable;
     }
 
+    public static void main(String[] args) {
+        Callable<String> callable = () -> {
+            return "Hello, RxJava!";
+        };
+        ExecuteChain<String> executeChain = new ExecuteChain<>(callable);
+        executeChain.map(str -> str.startsWith("Hello"))
+                .map(valid -> valid ? 1 : 2)
+                .execute();
+    }
+
     public <R> ExecuteChain<R> map(Function<? super T, ? extends R> function) {
         return new ExecuteChain<>(() -> {
             T value = callable.call();
             return function.apply(value);
         });
     }
-
 
     public void execute() {
         execute(t -> {
