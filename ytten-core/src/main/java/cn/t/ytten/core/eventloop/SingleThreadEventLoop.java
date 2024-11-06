@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
+import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -43,17 +44,19 @@ public class SingleThreadEventLoop implements Runnable {
                         if(key.isConnectable()) {
 
                         } else if(key.isAcceptable()) {
-
+                            ChannelContext ctx = (ChannelContext)key.attachment();
+                            ServerSocketChannel serverSocketChannel = (ServerSocketChannel)ctx.getSelectableChannel();
+                            SocketChannel socketChannel = serverSocketChannel.accept();
+                            ctx.invokeChannelRead(socketChannel);
                         }
                         if(key.isWritable()) {
 
                         }
                         if(key.isReadable()) {
-                            SocketChannel socketChannel = (SocketChannel)key.channel();
                             ChannelContext ctx = (ChannelContext)key.attachment();
                             int lastReadLength = 0;
                             for (int i = 0; i < defaultIoLoopTimes; i++) {
-                                lastReadLength = socketChannel.read(tmp);
+                                lastReadLength = ((SocketChannel)ctx.getSelectableChannel()).read(tmp);
                                 if (lastReadLength > 0) {
                                     tmp.flip();
                                     ctx.getReadCache().writeBytes(tmp);
@@ -67,7 +70,7 @@ public class SingleThreadEventLoop implements Runnable {
                                 }
                             }
                             if(lastReadLength > -1) {
-                                ctx.invokeChannelRead();
+                                ctx.invokeChannelRead(ctx.getReadCache());
                             } else {
                                 //连接已关闭
                                 ctx.invokeChannelClose();

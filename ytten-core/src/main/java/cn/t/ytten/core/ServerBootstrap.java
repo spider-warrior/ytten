@@ -42,7 +42,7 @@ public class ServerBootstrap {
         }).map(ctx -> {
             System.out.println("serverChannel初始化完毕");
             // 监听事件
-            ctx.register(acceptEventLoop.getSelector(), SelectionKey.OP_ACCEPT);
+            ctx.register(acceptEventLoop.getSelector(), SelectionKey.OP_ACCEPT).attach(ctx);
             return ctx;
         }).map(ctx -> {
             System.out.println("accept事件注册成功");
