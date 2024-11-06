@@ -77,6 +77,10 @@ public class SingleThreadEventLoop implements Runnable {
                         }
                     }
                 }
+                //及时任务
+                runInTimeTask();
+                //延时任务
+                runDelayTasK();
             }
         } catch (Throwable t) {
             System.out.println(ExceptionUtil.getErrorMessage(t));
