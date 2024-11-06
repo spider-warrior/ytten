@@ -1,6 +1,8 @@
 package cn.t.ytten.core.channel;
 
 
+import cn.t.ytten.core.exception.UnHandleException;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -81,9 +83,15 @@ public class ChannelPipeline {
 
     public void invokeNextChannelError(ChannelContext ctx, Throwable t) {
         try {
-            this.channelErrorIt.next().error(ctx, t);
+            if(channelErrorIt.hasNext()) {
+                channelErrorIt.next().error(ctx, t);
+            } else {
+                throw new UnHandleException(t);
+            }
         } catch (Throwable subThrowable) {
-            invokeNextChannelError(ctx, t);
+            if(channelErrorIt.hasNext()) {
+                invokeNextChannelError(ctx, t);
+            }
         }
     }
 }
