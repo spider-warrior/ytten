@@ -14,7 +14,7 @@ import java.nio.channels.SocketChannel;
 public class ConnectionAcceptHandler implements ChannelHandler {
 
     private final ServerChannelInitializer initializer;
-    private final SingleThreadEventLoop ioHandleEventLoop;
+    private final SingleThreadEventLoop ioEventLoop;
 
     @Override
     public void read(ChannelContext ctx, Object msg) throws Exception {
@@ -23,7 +23,7 @@ public class ConnectionAcceptHandler implements ChannelHandler {
         socketChannel.setOption(StandardSocketOptions.SO_KEEPALIVE, false);
         socketChannel.setOption(StandardSocketOptions.TCP_NODELAY, false);
         //构建subContext
-        ChannelContext subCtx = ChannelContext.socketChannelContext(socketChannel, ioHandleEventLoop);
+        ChannelContext subCtx = ChannelContext.socketChannelContext(socketChannel, ioEventLoop);
         subCtx.getPipeline().addChannelHandlerLast(new ChannelHandler() {
             @Override
             public void ready(ChannelContext ctx) throws Exception {
@@ -54,14 +54,14 @@ public class ConnectionAcceptHandler implements ChannelHandler {
             }
         });
         //注册读事件
-        ioHandleEventLoop.addTask(new ExecuteChain<>(() -> {
-            subCtx.register(ioHandleEventLoop.getSelector(), SelectionKey.OP_READ).attach(subCtx);
+        ioEventLoop.addTask(new ExecuteChain<>(() -> {
+            subCtx.register(ioEventLoop.getSelector(), SelectionKey.OP_READ).attach(subCtx);
             return subCtx;
         }));
     }
 
-    public ConnectionAcceptHandler(ServerChannelInitializer initializer, SingleThreadEventLoop ioHandleEventLoop) {
+    public ConnectionAcceptHandler(ServerChannelInitializer initializer, SingleThreadEventLoop ioEventLoop) {
         this.initializer = initializer;
-        this.ioHandleEventLoop = ioHandleEventLoop;
+        this.ioEventLoop = ioEventLoop;
     }
 }

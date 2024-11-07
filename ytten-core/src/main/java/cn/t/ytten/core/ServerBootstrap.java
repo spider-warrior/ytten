@@ -15,7 +15,7 @@ import java.nio.channels.ServerSocketChannel;
 public class ServerBootstrap {
 
     private final SingleThreadEventLoop acceptEventLoop;
-    private final SingleThreadEventLoop ioHandleEventLoop;
+    private final SingleThreadEventLoop ioEventLoop;
 
     private ServerSocketChannel bind(int port) throws IOException {
         ServerSocketChannel serverSocketChannel = ServerSocketChannel.open();
@@ -25,9 +25,9 @@ public class ServerBootstrap {
         return serverSocketChannel;
     }
 
-    private ChannelContext initChannelContext(ServerSocketChannel serverSocketChannel, SingleThreadEventLoop ioHandleEventLoop) {
+    private ChannelContext initChannelContext(ServerSocketChannel serverSocketChannel, SingleThreadEventLoop ioEventLoop) {
         ChannelContext ctx = ChannelContext.serverSocketChannelContext(serverSocketChannel, acceptEventLoop);
-        ctx.getPipeline().addChannelHandlerLast(new ConnectionAcceptHandler(new ServerChannelInitializer(), ioHandleEventLoop));
+        ctx.getPipeline().addChannelHandlerLast(new ConnectionAcceptHandler(new ServerChannelInitializer(), ioEventLoop));
         return ctx;
     }
 
@@ -38,7 +38,7 @@ public class ServerBootstrap {
         }).map(channel -> {
             System.out.println("端口绑定成功: " + channel.socket());
             //初始化context
-            return initChannelContext(channel, ioHandleEventLoop);
+            return initChannelContext(channel, ioEventLoop);
         }).map(ctx -> {
             System.out.println("serverChannel初始化完毕");
             // 监听事件
@@ -50,14 +50,14 @@ public class ServerBootstrap {
         }));
         Thread acceptThread = new Thread(acceptEventLoop);
         acceptThread.start();
-        if(acceptEventLoop != ioHandleEventLoop) {
-            Thread ioThread = new Thread(ioHandleEventLoop);
+        if(acceptEventLoop != ioEventLoop) {
+            Thread ioThread = new Thread(ioEventLoop);
             ioThread.start();
         }
     }
 
-    public ServerBootstrap(SingleThreadEventLoop acceptEventLoop, SingleThreadEventLoop ioHandleEventLoop) {
+    public ServerBootstrap(SingleThreadEventLoop acceptEventLoop, SingleThreadEventLoop ioEventLoop) {
         this.acceptEventLoop = acceptEventLoop;
-        this.ioHandleEventLoop = ioHandleEventLoop;
+        this.ioEventLoop = ioEventLoop;
     }
 }

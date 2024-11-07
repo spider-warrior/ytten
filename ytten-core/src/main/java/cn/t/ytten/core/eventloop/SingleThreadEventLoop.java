@@ -23,12 +23,7 @@ public class SingleThreadEventLoop implements Runnable {
     private final BlockingQueue<ExecuteChain<?>> inTimeTask = new LinkedBlockingQueue<>();
     private final PriorityBlockingQueue<EventLoopDelayTask> delayTaskQueue = new PriorityBlockingQueue<>(10, Comparator.comparingLong(EventLoopDelayTask::getExecuteTimePointInMills));
     private final Selector selector;
-    private final Thread thread;
     private volatile int state = EventLoopState.NOT_STARTED;
-
-    public boolean inEventLoop() {
-        return Thread.currentThread() == this.thread;
-    }
 
     @Override
     public void run() {
@@ -119,11 +114,7 @@ public class SingleThreadEventLoop implements Runnable {
     }
 
     public <V> void addTask(ExecuteChain<V> chain) {
-        if(inEventLoop()) {
-            chain.execute();
-        } else {
-            inTimeTask.add(chain);
-        }
+        inTimeTask.add(chain);
     }
 
     public void addDelayTask(EventLoopDelayTask delayTask) {
@@ -138,9 +129,7 @@ public class SingleThreadEventLoop implements Runnable {
         return selector;
     }
 
-    public SingleThreadEventLoop(String name) throws IOException {
+    public SingleThreadEventLoop() throws IOException {
         this.selector = Selector.open();
-        this.thread = new Thread(this, name);
-        this.thread.start();
     }
 }

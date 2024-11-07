@@ -7,7 +7,7 @@ import java.io.IOException;
 
 public class ServerTest {
     public static void main(String[] args) throws IOException {
-        SingleThreadEventLoop eventLoop = new SingleThreadEventLoop("bossGroup");
+        SingleThreadEventLoop eventLoop = new SingleThreadEventLoop();
         ServerBootstrap serverBootstrap = new ServerBootstrap(eventLoop, eventLoop);
         serverBootstrap.start(5566);
     }
