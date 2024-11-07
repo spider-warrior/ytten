@@ -2,7 +2,7 @@ package cn.t.ytten.core;
 
 import cn.t.ytten.core.channel.ChannelContext;
 import cn.t.ytten.core.channel.handler.ConnectionAcceptHandler;
-import cn.t.ytten.core.channel.initializer.ServerChannelInitializer;
+import cn.t.ytten.core.channel.initializer.SocketChannelInitializer;
 import cn.t.ytten.core.eventloop.ExecuteChain;
 import cn.t.ytten.core.eventloop.SingleThreadEventLoop;
 
@@ -27,7 +27,7 @@ public class ServerBootstrap {
 
     private ChannelContext initChannelContext(ServerSocketChannel serverSocketChannel, SingleThreadEventLoop ioEventLoop) {
         ChannelContext ctx = ChannelContext.serverSocketChannelContext(serverSocketChannel, acceptEventLoop);
-        ctx.getPipeline().addChannelHandlerLast(new ConnectionAcceptHandler(new ServerChannelInitializer(), ioEventLoop));
+        ctx.getPipeline().addChannelHandlerLast(new ConnectionAcceptHandler(new SocketChannelInitializer(), ioEventLoop));
         return ctx;
     }
 
