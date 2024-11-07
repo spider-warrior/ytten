@@ -14,6 +14,7 @@ public class ConnectionAcceptHandler implements ChannelHandler {
 
     private final SocketChannelInitializer initializer;
     private final SingleThreadEventLoop ioEventLoop;
+    private final boolean syncRegister;
 
     @Override
     public void read(ChannelContext ctx, Object msg) throws Exception {
@@ -25,14 +26,19 @@ public class ConnectionAcceptHandler implements ChannelHandler {
         ChannelContext subCtx = ChannelContext.socketChannelContext(socketChannel, ioEventLoop);
         initializer.initChannel(subCtx, socketChannel);
         //注册读事件
-        ioEventLoop.addTask(new ExecuteChain<>(() -> {
+        if(syncRegister) {
             subCtx.register(ioEventLoop.getSelector(), SelectionKey.OP_READ).attach(subCtx);
-            return subCtx;
-        }));
+        } else {
+            ioEventLoop.addTask(new ExecuteChain<>(() -> {
+                subCtx.register(ioEventLoop.getSelector(), SelectionKey.OP_READ).attach(subCtx);
+                return subCtx;
+            }));
+        }
     }
 
-    public ConnectionAcceptHandler(SocketChannelInitializer initializer, SingleThreadEventLoop ioEventLoop) {
+    public ConnectionAcceptHandler(SocketChannelInitializer initializer, SingleThreadEventLoop ioEventLoop, boolean syncRegister) {
         this.initializer = initializer;
         this.ioEventLoop = ioEventLoop;
+        this.syncRegister = syncRegister;
     }
 }

@@ -27,7 +27,7 @@ public class ServerBootstrap {
 
     private ChannelContext initChannelContext(ServerSocketChannel serverSocketChannel, SingleThreadEventLoop ioEventLoop) {
         ChannelContext ctx = ChannelContext.serverSocketChannelContext(serverSocketChannel, acceptEventLoop);
-        ctx.getPipeline().addChannelHandlerLast(new ConnectionAcceptHandler(new SocketChannelInitializer(), ioEventLoop));
+        ctx.getPipeline().addChannelHandlerLast(new ConnectionAcceptHandler(new SocketChannelInitializer(), ioEventLoop, acceptEventLoop == ioEventLoop));
         return ctx;
     }
 
