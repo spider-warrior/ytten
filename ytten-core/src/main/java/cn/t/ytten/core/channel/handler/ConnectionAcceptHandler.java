@@ -2,6 +2,7 @@ package cn.t.ytten.core.channel.handler;
 
 import cn.t.ytten.core.channel.ChannelContext;
 import cn.t.ytten.core.channel.ChannelHandler;
+import cn.t.ytten.core.channel.UnPooledHeapByteBuf;
 import cn.t.ytten.core.channel.initializer.ServerChannelInitializer;
 import cn.t.ytten.core.eventloop.ExecuteChain;
 import cn.t.ytten.core.eventloop.SingleThreadEventLoop;
@@ -31,7 +32,10 @@ public class ConnectionAcceptHandler implements ChannelHandler {
 
             @Override
             public void read(ChannelContext ctx, Object msg) throws Exception {
-                System.out.println("channel read: " + ctx.getSelectableChannel());
+                UnPooledHeapByteBuf byteBuf = (UnPooledHeapByteBuf)msg;
+                byte[] content = new byte[byteBuf.readableBytes()];
+                byteBuf.readBytes(content);
+                System.out.println("channel read: " + new String(content));
             }
 
             @Override
@@ -51,7 +55,7 @@ public class ConnectionAcceptHandler implements ChannelHandler {
         });
         //注册读事件
         ioHandleEventLoop.addTask(new ExecuteChain<>(() -> {
-            subCtx.register(ioHandleEventLoop.getSelector(), SelectionKey.OP_READ);
+            subCtx.register(ioHandleEventLoop.getSelector(), SelectionKey.OP_READ).attach(subCtx);
             return subCtx;
         }));
     }

@@ -50,8 +50,10 @@ public class ServerBootstrap {
         }));
         Thread acceptThread = new Thread(acceptEventLoop);
         acceptThread.start();
-        Thread ioThread = new Thread(ioHandleEventLoop);
-        ioThread.start();
+        if(acceptEventLoop != ioHandleEventLoop) {
+            Thread ioThread = new Thread(ioHandleEventLoop);
+            ioThread.start();
+        }
     }
 
     public ServerBootstrap(SingleThreadEventLoop acceptEventLoop, SingleThreadEventLoop ioHandleEventLoop) {
