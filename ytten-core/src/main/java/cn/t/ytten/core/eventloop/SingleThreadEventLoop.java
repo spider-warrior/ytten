@@ -35,7 +35,16 @@ public class SingleThreadEventLoop implements Runnable {
         state = EventLoopState.STARTED;
         try {
             while (state == EventLoopState.STARTED) {
-                int count = selector.select(nextSelectTimeout());
+                //及时任务
+                runInTimeTask();
+                //延时任务
+                long nextTaskExecuteTimePoint = runDelayTasK();
+                int  count;
+                if(nextTaskExecuteTimePoint < 0) {
+                    count = selector.select(defaultSelectTimeInMills);
+                } else {
+                    count = selector.select(nextTaskExecuteTimePoint - System.currentTimeMillis());
+                }
                 if(count > 0) {
                     Iterator<SelectionKey> it = selector.selectedKeys().iterator();
                     while (it.hasNext()) {
@@ -78,24 +87,11 @@ public class SingleThreadEventLoop implements Runnable {
                         }
                     }
                 }
-                //及时任务
-                runInTimeTask();
-                //延时任务
-                runDelayTasK();
             }
         } catch (Throwable t) {
             System.out.println(ExceptionUtil.getErrorMessage(t));
         } finally {
             try { selector.close();} catch (Exception ignore) {};
-        }
-    }
-
-    private long nextSelectTimeout() {
-        EventLoopDelayTask eventLoopDelayTask = delayTaskQueue.peek();
-        if(eventLoopDelayTask == null) {
-            return defaultSelectTimeInMills;
-        } else {
-            return eventLoopDelayTask.getExecuteTimePointInMills() - System.currentTimeMillis();
         }
     }
 
@@ -109,16 +105,18 @@ public class SingleThreadEventLoop implements Runnable {
         }
     }
 
-    private void runDelayTasK() {
+    private long runDelayTasK() {
         while (true) {
             EventLoopDelayTask delayTask = delayTaskQueue.poll();
-            if(delayTask == null || delayTask.getExecuteTimePointInMills() > System.currentTimeMillis()) {
-                break;
+            if(delayTask == null) {
+                return -1;
+            } else if(delayTask.getExecuteTimePointInMills() > System.currentTimeMillis()) {
+                return delayTask.getExecuteTimePointInMills();
+            } else {
+                delayTask.getTask().run();
             }
-            delayTask.getTask().run();
         }
     }
-
 
     public <V> void addTask(ExecuteChain<V> chain) {
         inTimeTask.add(chain);
