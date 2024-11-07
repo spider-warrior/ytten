@@ -97,11 +97,11 @@ public class SingleThreadEventLoop implements Runnable {
 
     private void runInTimeTask() {
         while (true) {
-            ExecuteChain<?> eventLoopTask = inTimeTask.poll();
-            if(eventLoopTask == null) {
+            ExecuteChain<?> chain = inTimeTask.poll();
+            if(chain == null) {
                 break;
             }
-            eventLoopTask.execute();
+            chain.execute();
         }
     }
 
@@ -119,7 +119,11 @@ public class SingleThreadEventLoop implements Runnable {
     }
 
     public <V> void addTask(ExecuteChain<V> chain) {
-        inTimeTask.add(chain);
+        if(inEventLoop()) {
+            chain.execute();
+        } else {
+            inTimeTask.add(chain);
+        }
     }
 
     public void addDelayTask(EventLoopDelayTask delayTask) {
