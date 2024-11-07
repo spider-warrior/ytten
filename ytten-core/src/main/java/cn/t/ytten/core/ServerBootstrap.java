@@ -5,14 +5,18 @@ import cn.t.ytten.core.channel.handler.ConnectionAcceptHandler;
 import cn.t.ytten.core.channel.initializer.SocketChannelInitializer;
 import cn.t.ytten.core.eventloop.ExecuteChain;
 import cn.t.ytten.core.eventloop.SingleThreadEventLoop;
+import cn.t.ytten.core.util.LoggingUtil;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.StandardSocketOptions;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.ServerSocketChannel;
+import java.util.logging.Logger;
 
 public class ServerBootstrap {
+
+    private static final Logger logger = LoggingUtil.getLogger(ServerBootstrap.class);
 
     private final SingleThreadEventLoop acceptEventLoop;
     private final SingleThreadEventLoop ioEventLoop;
@@ -36,16 +40,16 @@ public class ServerBootstrap {
             //构建ServerSocketChannel
             return bind(port);
         }).map(channel -> {
-            System.out.println("端口绑定成功: " + channel.socket());
+            logger.info("端口绑定成功: " + channel.socket());
             //初始化context
             return initChannelContext(channel, ioEventLoop);
         }).map(ctx -> {
-            System.out.println("serverChannel初始化完毕");
+            logger.info("serverChannel初始化完毕");
             // 监听事件
             ctx.register(acceptEventLoop.getSelector(), SelectionKey.OP_ACCEPT).attach(ctx);
             return ctx;
         }).map(ctx -> {
-            System.out.println("accept事件注册成功");
+            logger.info("accept事件注册成功");
             return ctx;
         }));
         Thread acceptThread = new Thread(acceptEventLoop);

@@ -29,6 +29,7 @@ public class ConnectionAcceptHandler implements ChannelHandler {
         if(syncRegister) {
             subCtx.register(ioEventLoop.getSelector(), SelectionKey.OP_READ).attach(subCtx);
         } else {
+            //有可能会等到下次loop才能执行
             ioEventLoop.addTask(new ExecuteChain<>(() -> {
                 subCtx.register(ioEventLoop.getSelector(), SelectionKey.OP_READ).attach(subCtx);
                 return subCtx;

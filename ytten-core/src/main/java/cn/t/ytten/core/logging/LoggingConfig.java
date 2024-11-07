@@ -6,7 +6,6 @@ import java.util.logging.Logger;
 
 public class LoggingConfig {
     static {
-        System.getProperties().putIfAbsent("java.util.logging.config.class", "cn.t.ytten.core.logging.LoggingConfig");
         // 获取根Logger
         Logger rootLogger = LogManager.getLogManager().getLogger("");
         // 移除默认的处理器
