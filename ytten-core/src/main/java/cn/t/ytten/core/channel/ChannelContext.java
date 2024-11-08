@@ -2,11 +2,11 @@ package cn.t.ytten.core.channel;
 
 import cn.t.ytten.core.eventloop.SingleThreadEventLoop;
 import cn.t.ytten.core.exception.ChannelException;
+import cn.t.ytten.core.util.ByteBufferUtil;
 
-import java.nio.channels.ClosedChannelException;
-import java.nio.channels.SelectableChannel;
-import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.channels.*;
 
 public class ChannelContext {
 
@@ -31,8 +31,23 @@ public class ChannelContext {
     public void invokeNextChannelRead(Object msg) {
         pipeline.invokeNextChannelRead(this, msg);
     }
-    public void invokeChannelWrite() {
-        pipeline.invokeChannelWrite(this, writeCache);
+
+    public void flush() throws IOException {
+        if(selectableChannel instanceof SocketChannel) {
+            if(writeCache.readableBytes() > 0) {
+                ByteBuffer buffer = ByteBufferUtil.allocate();
+                while (writeCache.readableBytes() > 0) {
+                    writeCache.readBytes(buffer);
+                    buffer.flip();
+                    ((SocketChannel)selectableChannel).write(buffer);
+                    buffer.clear();
+                }
+            }
+        }
+    }
+
+    public void invokeChannelWrite(Object msg) {
+        pipeline.invokeChannelWrite(this, msg);
     }
 
     public void invokeNextChannelWrite(Object msg) {

@@ -22,11 +22,16 @@ public class DebugChannelHandler implements ChannelHandler {
         byte[] content = new byte[byteBuf.readableBytes()];
         byteBuf.readBytes(content);
         logger.info("channel read: " + new String(content));
+        ctx.invokeChannelWrite(String.valueOf(System.currentTimeMillis()));
+        ctx.flush();
     }
 
     @Override
     public void write(ChannelContext ctx, Object msg) throws Exception {
-        logger.info("channel write: " + ctx.getSelectableChannel());
+        logger.info("channel write: " + msg);
+        if(msg != null) {
+            ctx.getWriteCache().writeBytes(msg.toString().getBytes());
+        }
     }
 
     @Override
