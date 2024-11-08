@@ -49,10 +49,8 @@ public class SingleThreadEventLoop implements Runnable {
                         if(key.isConnectable()) {
 
                         } else if(key.isAcceptable()) {
-                            ChannelContext ctx = (ChannelContext)key.attachment();
-                            ServerSocketChannel serverSocketChannel = (ServerSocketChannel)ctx.getSelectableChannel();
-                            SocketChannel socketChannel = serverSocketChannel.accept();
-                            ctx.invokeChannelRead(socketChannel);
+                            SocketChannel socketChannel = ((ServerSocketChannel)key.channel()).accept();
+                            ((ChannelContext)key.attachment()).invokeChannelRead(socketChannel);
                         }
                         if(key.isWritable()) {
 
@@ -61,7 +59,7 @@ public class SingleThreadEventLoop implements Runnable {
                             ChannelContext ctx = (ChannelContext)key.attachment();
                             int lastReadLength = 0;
                             for (int i = 0; i < defaultIoLoopTimes; i++) {
-                                lastReadLength = ((SocketChannel)ctx.getSelectableChannel()).read(tmp);
+                                lastReadLength = ctx.read(tmp);
                                 if (lastReadLength > 0) {
                                     tmp.flip();
                                     ctx.getReadCache().writeBytes(tmp);

@@ -5,6 +5,7 @@ import cn.t.ytten.core.exception.ChannelException;
 import cn.t.ytten.core.util.ByteBufferUtil;
 
 import java.io.IOException;
+import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.*;
 
@@ -70,10 +71,6 @@ public class ChannelContext {
         pipeline.invokeNextChannelError(this, t);
     }
 
-    public SelectableChannel getSelectableChannel() {
-        return selectableChannel;
-    }
-
     public SingleThreadEventLoop getEventLoop() {
         return eventLoop;
     }
@@ -100,6 +97,14 @@ public class ChannelContext {
         } catch (ClosedChannelException e) {
             throw new ChannelException(e);
         }
+    }
+
+    public int read(ByteBuffer buffer) throws IOException {
+        return ((SocketChannel)selectableChannel).read(buffer);
+    }
+
+    public SocketAddress remoteAddress() throws IOException {
+        return ((SocketChannel)selectableChannel).getRemoteAddress();
     }
 
     public ChannelContext(SelectableChannel selectableChannel, SingleThreadEventLoop eventLoop, UnPooledHeapByteBuf readCache, UnPooledHeapByteBuf writeCache) {
