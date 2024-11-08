@@ -11,6 +11,7 @@ import java.nio.channels.*;
 
 public class ChannelContext {
 
+    private final SocketAddress remoteAddress;
     private final SelectableChannel selectableChannel;
     private final SingleThreadEventLoop eventLoop;
     private final ChannelPipeline pipeline = new ChannelPipeline();
@@ -103,22 +104,31 @@ public class ChannelContext {
         return ((SocketChannel)selectableChannel).read(buffer);
     }
 
-    public SocketAddress remoteAddress() throws IOException {
-        return ((SocketChannel)selectableChannel).getRemoteAddress();
+    public void close() throws IOException {
+        try {
+            selectableChannel.close();
+        } finally {
+            invokeChannelClose();
+        }
     }
 
-    public ChannelContext(SelectableChannel selectableChannel, SingleThreadEventLoop eventLoop, UnPooledHeapByteBuf readCache, UnPooledHeapByteBuf writeCache) {
+    public SocketAddress remoteAddress() throws IOException {
+        return remoteAddress;
+    }
+
+    public ChannelContext(SelectableChannel selectableChannel, SocketAddress remoteAddress, SingleThreadEventLoop eventLoop, UnPooledHeapByteBuf readCache, UnPooledHeapByteBuf writeCache) {
         this.selectableChannel = selectableChannel;
+        this.remoteAddress = remoteAddress;
         this.eventLoop = eventLoop;
         this.readCache = readCache;
         this.writeCache = writeCache;
     }
 
-    public static ChannelContext socketChannelContext(SelectableChannel selectableChannel, SingleThreadEventLoop eventLoop) {
-        return new ChannelContext(selectableChannel, eventLoop, new UnPooledHeapByteBuf(), new UnPooledHeapByteBuf());
+    public static ChannelContext socketChannelContext(SelectableChannel selectableChannel, SocketAddress remoteAddress, SingleThreadEventLoop eventLoop) {
+        return new ChannelContext(selectableChannel, remoteAddress, eventLoop, new UnPooledHeapByteBuf(), new UnPooledHeapByteBuf());
     }
 
     public static ChannelContext serverSocketChannelContext(SelectableChannel selectableChannel, SingleThreadEventLoop eventLoop) {
-        return new ChannelContext(selectableChannel, eventLoop, null, null);
+        return new ChannelContext(selectableChannel, null, eventLoop, null, null);
     }
 }

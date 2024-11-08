@@ -23,7 +23,7 @@ public class ConnectionAcceptHandler implements ChannelHandler {
         socketChannel.setOption(StandardSocketOptions.SO_KEEPALIVE, false);
         socketChannel.setOption(StandardSocketOptions.TCP_NODELAY, false);
         //构建subContext
-        ChannelContext subCtx = ChannelContext.socketChannelContext(socketChannel, ioEventLoop);
+        ChannelContext subCtx = ChannelContext.socketChannelContext(socketChannel, socketChannel.getRemoteAddress(), ioEventLoop);
         initializer.initChannel(subCtx, socketChannel);
         //连接就绪
         subCtx.invokeChannelReady();
