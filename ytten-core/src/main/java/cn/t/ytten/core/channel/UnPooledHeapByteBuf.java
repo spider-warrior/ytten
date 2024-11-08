@@ -60,9 +60,9 @@ public class UnPooledHeapByteBuf {
     }
 
     public void readBytes(ByteBuffer dst) {
-        int length = dst.remaining();
-        dst.put(buf, readerIndex, Math.min(readableBytes(), dst.remaining()));
-        readerIndex += length;
+        int writeLength = Math.min(readableBytes(), dst.remaining());
+        dst.put(buf, readerIndex, writeLength);
+        readerIndex += writeLength;
     }
 
     public void getBytes(int index, byte[] dst, int dstIndex, int length) {
