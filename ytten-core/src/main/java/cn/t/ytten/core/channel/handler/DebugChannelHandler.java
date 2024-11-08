@@ -14,10 +14,15 @@ public class DebugChannelHandler implements ChannelHandler {
     @Override
     public void ready(ChannelContext ctx) throws Exception {
         logger.info("channel ready: " + ctx.getSelectableChannel());
+        ctx.getWriteCache().writeBytes("hello".getBytes());
+        ctx.flush();
     }
 
     @Override
     public void read(ChannelContext ctx, Object msg) throws Exception {
+//        if(true) {
+//            throw new RuntimeException("on purpose");
+//        }
         UnPooledHeapByteBuf byteBuf = (UnPooledHeapByteBuf)msg;
         byte[] content = new byte[byteBuf.readableBytes()];
         byteBuf.readBytes(content);
@@ -39,8 +44,8 @@ public class DebugChannelHandler implements ChannelHandler {
         logger.info("channel close: " + ctx.getSelectableChannel());
     }
 
-    @Override
-    public void error(ChannelContext ctx, Throwable t) throws Exception {
-        logger.info("channel error: " + ctx.getSelectableChannel());
-    }
+//    @Override
+//    public void error(ChannelContext ctx, Throwable t) throws Exception {
+//        logger.info("channel error: " + ctx.getSelectableChannel());
+//    }
 }
