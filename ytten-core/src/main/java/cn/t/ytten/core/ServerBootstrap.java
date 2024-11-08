@@ -26,20 +26,20 @@ public class ServerBootstrap {
         return serverSocketChannel;
     }
 
-    private ChannelContext initChannelContext(ServerSocketChannel serverSocketChannel, SingleThreadEventLoop acceptEventLoop, SingleThreadEventLoop ioEventLoop) {
+    private ChannelContext initChannelContext(ServerSocketChannel serverSocketChannel, SingleThreadEventLoop acceptEventLoop, SingleThreadEventLoop ioEventLoop, SocketChannelInitializer initializer) {
         ChannelContext ctx = ChannelContext.serverSocketChannelContext(serverSocketChannel, acceptEventLoop);
-        ctx.getPipeline().addChannelHandlerLast(new ConnectionAcceptHandler(new SocketChannelInitializer(), ioEventLoop, acceptEventLoop == ioEventLoop));
+        ctx.getPipeline().addChannelHandlerLast(new ConnectionAcceptHandler(initializer, ioEventLoop, acceptEventLoop == ioEventLoop));
         return ctx;
     }
 
-    public void start(int port, SingleThreadEventLoop acceptEventLoop, SingleThreadEventLoop ioEventLoop) {
+    public void start(int port, SingleThreadEventLoop acceptEventLoop, SingleThreadEventLoop ioEventLoop, SocketChannelInitializer initializer) {
         acceptEventLoop.addTask(new ExecuteChain<>(() -> {
             //构建ServerSocketChannel
             return bind(port);
         }).map(channel -> {
             logger.info("端口绑定完成: " + channel.socket());
             //初始化context
-            return initChannelContext(channel, acceptEventLoop, ioEventLoop);
+            return initChannelContext(channel, acceptEventLoop, ioEventLoop, initializer);
         }).map(ctx -> {
             logger.info("serverChannel初始化完成");
             // 监听事件
