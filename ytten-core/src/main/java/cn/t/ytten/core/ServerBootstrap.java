@@ -42,7 +42,7 @@ public class ServerBootstrap {
             return initChannelContext(channel, acceptEventLoop, ioEventLoop, initializer);
         }).map(ctx -> {
             logger.info("serverChannel初始化完成");
-            // 监听事件
+            //监听accept事件
             ctx.register(acceptEventLoop.getSelector(), SelectionKey.OP_ACCEPT).attach(ctx);
             return ctx;
         }).map(ctx -> {
