@@ -77,6 +77,7 @@ public class SingleThreadEventLoop implements Runnable {
                             if(lastReadLength > -1) {
                                 ctx.invokeChannelRead(ctx.getReadCache());
                             } else {
+                                key.cancel();
                                 //连接已关闭
                                 ctx.invokeChannelClose();
                             }
