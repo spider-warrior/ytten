@@ -25,6 +25,8 @@ public class ConnectionAcceptHandler implements ChannelHandler {
         //构建subContext
         ChannelContext subCtx = ChannelContext.socketChannelContext(socketChannel, ioEventLoop);
         initializer.initChannel(subCtx, socketChannel);
+        //连接就绪
+        subCtx.invokeChannelReady();
         //注册读事件
         if(syncRegister) {
             subCtx.register(ioEventLoop.getSelector(), SelectionKey.OP_READ).attach(subCtx);

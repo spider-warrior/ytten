@@ -3,11 +3,17 @@ package cn.t.ytten.core.channel.handler;
 import cn.t.ytten.core.channel.ChannelContext;
 import cn.t.ytten.core.channel.ChannelHandler;
 import cn.t.ytten.core.channel.UnPooledHeapByteBuf;
+import cn.t.ytten.core.util.LoggingUtil;
+
+import java.util.logging.Logger;
 
 public class DebugChannelHandler implements ChannelHandler {
+
+    private static final Logger logger = LoggingUtil.getLogger(DebugChannelHandler.class);
+
     @Override
     public void ready(ChannelContext ctx) throws Exception {
-        System.out.println("channel ready: " + ctx.getSelectableChannel());
+        logger.info("channel ready: " + ctx.getSelectableChannel());
     }
 
     @Override
@@ -15,21 +21,21 @@ public class DebugChannelHandler implements ChannelHandler {
         UnPooledHeapByteBuf byteBuf = (UnPooledHeapByteBuf)msg;
         byte[] content = new byte[byteBuf.readableBytes()];
         byteBuf.readBytes(content);
-        System.out.println("channel read: " + new String(content));
+        logger.info("channel read: " + new String(content));
     }
 
     @Override
     public void write(ChannelContext ctx, Object msg) throws Exception {
-        System.out.println("channel write: " + ctx.getSelectableChannel());
+        logger.info("channel write: " + ctx.getSelectableChannel());
     }
 
     @Override
     public void close(ChannelContext ctx) throws Exception {
-        System.out.println("channel close: " + ctx.getSelectableChannel());
+        logger.info("channel close: " + ctx.getSelectableChannel());
     }
 
     @Override
     public void error(ChannelContext ctx, Throwable t) throws Exception {
-        System.out.println("channel error: " + ctx.getSelectableChannel());
+        logger.info("channel error: " + ctx.getSelectableChannel());
     }
 }

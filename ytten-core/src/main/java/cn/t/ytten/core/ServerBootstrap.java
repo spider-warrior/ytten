@@ -37,16 +37,16 @@ public class ServerBootstrap {
             //构建ServerSocketChannel
             return bind(port);
         }).map(channel -> {
-            logger.info("端口绑定成功: " + channel.socket());
+            logger.info("端口绑定完成: " + channel.socket());
             //初始化context
             return initChannelContext(channel, acceptEventLoop, ioEventLoop);
         }).map(ctx -> {
-            logger.info("serverChannel初始化完毕");
+            logger.info("serverChannel初始化完成");
             // 监听事件
             ctx.register(acceptEventLoop.getSelector(), SelectionKey.OP_ACCEPT).attach(ctx);
             return ctx;
         }).map(ctx -> {
-            logger.info("accept事件注册成功");
+            logger.info("accept注册完成");
             return ctx;
         }));
         Thread acceptThread = new Thread(acceptEventLoop, acceptEventLoop.getName());
