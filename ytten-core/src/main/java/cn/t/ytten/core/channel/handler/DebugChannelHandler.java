@@ -13,22 +13,24 @@ public class DebugChannelHandler implements ChannelHandler {
 
     @Override
     public void ready(ChannelContext ctx) throws Exception {
-        logger.info("channel ready: " + ctx.getSelectableChannel());
+        logger.info("channel ready: " + ctx.remoteAddress());
         ctx.getWriteCache().writeBytes("hello".getBytes());
         ctx.flush();
     }
 
     @Override
     public void read(ChannelContext ctx, Object msg) throws Exception {
-//        if(true) {
+        if(System.currentTimeMillis() % 3 == 0) {
+            ctx.close();
 //            throw new RuntimeException("on purpose");
-//        }
-        UnPooledHeapByteBuf byteBuf = (UnPooledHeapByteBuf)msg;
-        byte[] content = new byte[byteBuf.readableBytes()];
-        byteBuf.readBytes(content);
-        logger.info("channel read: " + new String(content));
-        ctx.invokeChannelWrite(String.valueOf(System.currentTimeMillis()));
-        ctx.flush();
+        } else {
+            UnPooledHeapByteBuf byteBuf = (UnPooledHeapByteBuf)msg;
+            byte[] content = new byte[byteBuf.readableBytes()];
+            byteBuf.readBytes(content);
+            logger.info("channel read: " + new String(content));
+            ctx.invokeChannelWrite(String.valueOf(System.currentTimeMillis()));
+            ctx.flush();
+        }
     }
 
     @Override
@@ -41,11 +43,13 @@ public class DebugChannelHandler implements ChannelHandler {
 
     @Override
     public void close(ChannelContext ctx) throws Exception {
-        logger.info("channel close: " + ctx.getSelectableChannel());
+        logger.info("channel close: " + ctx.remoteAddress());
+
     }
 
-//    @Override
-//    public void error(ChannelContext ctx, Throwable t) throws Exception {
-//        logger.info("channel error: " + ctx.getSelectableChannel());
-//    }
+    @Override
+    public void error(ChannelContext ctx, Throwable t) throws Exception {
+        logger.info("channel error: " + ctx.remoteAddress());
+        ctx.close();
+    }
 }
