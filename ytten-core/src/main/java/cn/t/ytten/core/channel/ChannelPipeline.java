@@ -2,12 +2,18 @@ package cn.t.ytten.core.channel;
 
 
 import cn.t.ytten.core.exception.UnHandleException;
+import cn.t.ytten.core.util.ExceptionUtil;
+import cn.t.ytten.core.util.LoggingUtil;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Logger;
 
 public class ChannelPipeline {
+
+    private static final Logger defaultErrorHandlerLogger = LoggingUtil.getLogger("default-error-handler");
+
     private final List<ChannelHandler> channelHandlerList = new ArrayList<>();
 
     private Iterator<ChannelHandler> channelReadyIt;
@@ -91,6 +97,8 @@ public class ChannelPipeline {
         } catch (Throwable subThrowable) {
             if(channelErrorIt.hasNext()) {
                 invokeNextChannelError(ctx, t);
+            } else {
+                defaultErrorHandlerLogger.warning("未处理的异常: "+ subThrowable.getMessage() +"\n" + ExceptionUtil.getStackTrace(subThrowable));
             }
         }
     }
