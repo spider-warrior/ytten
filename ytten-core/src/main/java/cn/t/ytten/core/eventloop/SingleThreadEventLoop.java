@@ -22,6 +22,7 @@ public class SingleThreadEventLoop implements Runnable {
     private final ByteBuffer tmp = ByteBuffer.allocate(1024*1024);
     private final BlockingQueue<ExecuteChain<?>> inTimeTask = new LinkedBlockingQueue<>();
     private final PriorityBlockingQueue<EventLoopDelayTask> delayTaskQueue = new PriorityBlockingQueue<>(10, Comparator.comparingLong(EventLoopDelayTask::getExecuteTimePointInMills));
+    private final String name;
     private final Selector selector;
     private volatile int state = EventLoopState.NOT_STARTED;
 
@@ -129,7 +130,12 @@ public class SingleThreadEventLoop implements Runnable {
         return selector;
     }
 
-    public SingleThreadEventLoop() throws IOException {
+    public String getName() {
+        return name;
+    }
+
+    public SingleThreadEventLoop(String name) throws IOException {
+        this.name = name;
         this.selector = Selector.open();
     }
 }

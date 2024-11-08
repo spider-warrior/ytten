@@ -18,9 +18,6 @@ public class ServerBootstrap {
 
     private static final Logger logger = LoggingUtil.getLogger(ServerBootstrap.class);
 
-    private final SingleThreadEventLoop acceptEventLoop;
-    private final SingleThreadEventLoop ioEventLoop;
-
     private ServerSocketChannel bind(int port) throws IOException {
         ServerSocketChannel serverSocketChannel = ServerSocketChannel.open();
         serverSocketChannel.setOption(StandardSocketOptions.SO_REUSEADDR, true);
@@ -29,20 +26,20 @@ public class ServerBootstrap {
         return serverSocketChannel;
     }
 
-    private ChannelContext initChannelContext(ServerSocketChannel serverSocketChannel, SingleThreadEventLoop ioEventLoop) {
+    private ChannelContext initChannelContext(ServerSocketChannel serverSocketChannel, SingleThreadEventLoop acceptEventLoop, SingleThreadEventLoop ioEventLoop) {
         ChannelContext ctx = ChannelContext.serverSocketChannelContext(serverSocketChannel, acceptEventLoop);
         ctx.getPipeline().addChannelHandlerLast(new ConnectionAcceptHandler(new SocketChannelInitializer(), ioEventLoop, acceptEventLoop == ioEventLoop));
         return ctx;
     }
 
-    public void start(int port) {
+    public void start(int port, SingleThreadEventLoop acceptEventLoop, SingleThreadEventLoop ioEventLoop) {
         acceptEventLoop.addTask(new ExecuteChain<>(() -> {
             //构建ServerSocketChannel
             return bind(port);
         }).map(channel -> {
             logger.info("端口绑定成功: " + channel.socket());
             //初始化context
-            return initChannelContext(channel, ioEventLoop);
+            return initChannelContext(channel, acceptEventLoop, ioEventLoop);
         }).map(ctx -> {
             logger.info("serverChannel初始化完毕");
             // 监听事件
@@ -52,16 +49,12 @@ public class ServerBootstrap {
             logger.info("accept事件注册成功");
             return ctx;
         }));
-        Thread acceptThread = new Thread(acceptEventLoop);
+        Thread acceptThread = new Thread(acceptEventLoop, acceptEventLoop.getName());
         acceptThread.start();
         if(acceptEventLoop != ioEventLoop) {
-            Thread ioThread = new Thread(ioEventLoop);
+            Thread ioThread = new Thread(ioEventLoop, ioEventLoop.getName());
             ioThread.start();
         }
     }
 
-    public ServerBootstrap(SingleThreadEventLoop acceptEventLoop, SingleThreadEventLoop ioEventLoop) {
-        this.acceptEventLoop = acceptEventLoop;
-        this.ioEventLoop = ioEventLoop;
-    }
 }
