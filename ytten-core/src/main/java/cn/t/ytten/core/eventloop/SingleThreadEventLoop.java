@@ -64,7 +64,8 @@ public class SingleThreadEventLoop implements Runnable {
                             ((ChannelContext)key.attachment()).invokeChannelRead(socketChannel);
                         }
                         if(key.isWritable()) {
-
+                            ChannelContext ctx = (ChannelContext)key.attachment();
+                            ctx.invokeChannelWrite(ctx.getWriteCache());
                         }
                         if(key.isReadable()) {
                             ChannelContext ctx = (ChannelContext)key.attachment();
