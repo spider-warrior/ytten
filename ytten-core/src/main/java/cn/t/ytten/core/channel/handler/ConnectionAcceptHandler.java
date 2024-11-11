@@ -2,7 +2,7 @@ package cn.t.ytten.core.channel.handler;
 
 import cn.t.ytten.core.channel.ChannelContext;
 import cn.t.ytten.core.channel.ChannelHandler;
-import cn.t.ytten.core.channel.initializer.SocketChannelInitializer;
+import cn.t.ytten.core.channel.ChannelInitializer;
 import cn.t.ytten.core.eventloop.ExecuteChain;
 import cn.t.ytten.core.eventloop.SingleThreadEventLoop;
 
@@ -12,7 +12,7 @@ import java.nio.channels.SocketChannel;
 
 public class ConnectionAcceptHandler implements ChannelHandler {
 
-    private final SocketChannelInitializer initializer;
+    private final ChannelInitializer initializer;
     private final SingleThreadEventLoop ioEventLoop;
     private final boolean syncRegister;
 
@@ -39,7 +39,7 @@ public class ConnectionAcceptHandler implements ChannelHandler {
         }
     }
 
-    public ConnectionAcceptHandler(SocketChannelInitializer initializer, SingleThreadEventLoop ioEventLoop, boolean syncRegister) {
+    public ConnectionAcceptHandler(ChannelInitializer initializer, SingleThreadEventLoop ioEventLoop, boolean syncRegister) {
         this.initializer = initializer;
         this.ioEventLoop = ioEventLoop;
         this.syncRegister = syncRegister;

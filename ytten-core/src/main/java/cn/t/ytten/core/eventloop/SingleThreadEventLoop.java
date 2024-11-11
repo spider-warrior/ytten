@@ -152,6 +152,10 @@ public class SingleThreadEventLoop implements Runnable {
         return name;
     }
 
+    public void stop() {
+        this.state = EventLoopState.SHUTDOWN;
+    }
+
     public SingleThreadEventLoop(String name) throws IOException {
         this.name = name;
         this.selector = Selector.open();
