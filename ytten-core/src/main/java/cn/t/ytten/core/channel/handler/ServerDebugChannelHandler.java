@@ -2,7 +2,6 @@ package cn.t.ytten.core.channel.handler;
 
 import cn.t.ytten.core.channel.ChannelContext;
 import cn.t.ytten.core.channel.ChannelHandler;
-import cn.t.ytten.core.channel.UnPooledHeapByteBuf;
 import cn.t.ytten.core.util.LoggingUtil;
 
 import java.time.LocalDateTime;
@@ -21,17 +20,14 @@ public class ServerDebugChannelHandler implements ChannelHandler {
 
     @Override
     public void read(ChannelContext ctx, Object msg) throws Exception {
-        if(System.currentTimeMillis() % 3 == 0) {
-            ctx.close();
+//        if(System.currentTimeMillis() % 3 == 0) {
+//            ctx.close();
 //            throw new RuntimeException("on purpose");
-        } else {
-            UnPooledHeapByteBuf byteBuf = (UnPooledHeapByteBuf)msg;
-            byte[] content = new byte[byteBuf.readableBytes()];
-            byteBuf.readBytes(content);
-            logger.info("server accept channel read: " + new String(content));
-            ctx.invokeChannelWrite("服务端当前时间: " + LocalDateTime.now());
-            ctx.flush();
-        }
+//        }
+        logger.info("server accept channel read: " + msg);
+        ctx.invokeChannelWrite("服务端当前时间: " + LocalDateTime.now());
+        ctx.flush();
+
     }
 
     @Override
