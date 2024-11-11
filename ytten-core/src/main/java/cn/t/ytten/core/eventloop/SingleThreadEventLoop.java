@@ -2,6 +2,7 @@ package cn.t.ytten.core.eventloop;
 
 import cn.t.ytten.core.channel.ChannelContext;
 import cn.t.ytten.core.util.ExceptionUtil;
+import cn.t.ytten.core.util.LoggingUtil;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -14,8 +15,11 @@ import java.util.Iterator;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.PriorityBlockingQueue;
+import java.util.logging.Logger;
 
 public class SingleThreadEventLoop implements Runnable {
+
+    private static final Logger logger = LoggingUtil.getLogger(SingleThreadEventLoop.class);
 
     private static final int defaultSelectTimeInMills = 3000;
     private static final int defaultIoLoopTimes = 5;
@@ -66,16 +70,23 @@ public class SingleThreadEventLoop implements Runnable {
                             ChannelContext ctx = (ChannelContext)key.attachment();
                             int lastReadLength = 0;
                             for (int i = 0; i < defaultIoLoopTimes; i++) {
-                                lastReadLength = ctx.read(tmp);
-                                if (lastReadLength > 0) {
-                                    tmp.flip();
-                                    ctx.getReadCache().writeBytes(tmp);
-                                    tmp.clear();
-                                    if(lastReadLength < tmp.capacity()) {
-                                        //消息已读完
+                                try {
+                                    lastReadLength = ctx.read(tmp);
+                                    if (lastReadLength > 0) {
+                                        tmp.flip();
+                                        ctx.getReadCache().writeBytes(tmp);
+                                        tmp.clear();
+                                        if(lastReadLength < tmp.capacity()) {
+                                            //消息已读完
+                                            break;
+                                        }
+                                    } else {
                                         break;
                                     }
-                                } else {
+                                } catch (Throwable t) {
+                                    logger.warning("读取消息异常: " + t);
+                                    //设定标志关闭连接
+                                    lastReadLength = -1;
                                     break;
                                 }
                             }
@@ -91,9 +102,9 @@ public class SingleThreadEventLoop implements Runnable {
                 }
             }
         } catch (Throwable t) {
-            System.out.println(ExceptionUtil.getErrorMessage(t));
+            logger.warning("未处理异常: " + ExceptionUtil.getErrorMessage(t));
         } finally {
-            try { selector.close();} catch (Exception ignore) {};
+//            try { selector.close();} catch (Exception ignore) {};
         }
     }
 
