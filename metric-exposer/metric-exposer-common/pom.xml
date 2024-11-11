@@ -11,4 +11,10 @@
 
     <artifactId>metric-exposer-common</artifactId>
 
+    <dependencies>
+        <dependency>
+            <groupId>cn.t</groupId>
+            <artifactId>ytten-core</artifactId>
+        </dependency>
+    </dependencies>
 </project>

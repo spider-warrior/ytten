@@ -1,7 +1,7 @@
 package cn.t.ytten.core;
 
 import cn.t.ytten.core.channel.ChannelContext;
-import cn.t.ytten.core.channel.handler.ClientDebugChannelHandler;
+import cn.t.ytten.core.channel.ChannelInitializer;
 import cn.t.ytten.core.eventloop.ExecuteChain;
 import cn.t.ytten.core.eventloop.SingleThreadEventLoop;
 
@@ -13,14 +13,14 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 
 public class ClientBootstrap {
-    public void start(String host, int port, SingleThreadEventLoop ioEventLoop) {
+    public void start(String host, int port, SingleThreadEventLoop ioEventLoop, ChannelInitializer initializer) {
         SocketAddress remoteAddress = new InetSocketAddress(host, port);
         ioEventLoop.addTask(new ExecuteChain<>(() -> {
             //连接
             return connect(host, port);
         }).map(socketChannel -> {
             //初始化context
-            return initChannelContext(socketChannel, remoteAddress, ioEventLoop);
+            return initChannelContext(socketChannel, remoteAddress, ioEventLoop, initializer);
         }).map(ctx -> {
             //监听connect事件
             ctx.register(ioEventLoop.getSelector(), SelectionKey.OP_CONNECT, ctx);
@@ -30,9 +30,9 @@ public class ClientBootstrap {
         ioThread.start();
     }
 
-    private ChannelContext initChannelContext(SocketChannel socketChannel, SocketAddress remoteAddress, SingleThreadEventLoop ioEventLoop) {
+    private ChannelContext initChannelContext(SocketChannel socketChannel, SocketAddress remoteAddress, SingleThreadEventLoop ioEventLoop, ChannelInitializer initializer) {
         ChannelContext ctx = ChannelContext.socketChannelContext(socketChannel, remoteAddress, ioEventLoop);
-        ctx.getPipeline().addChannelHandlerLast(new ClientDebugChannelHandler());
+        initializer.initChannel(ctx, socketChannel);
         return ctx;
     }
 

@@ -6,9 +6,9 @@ import cn.t.ytten.core.channel.handler.ServerDebugChannelHandler;
 
 import java.nio.channels.Channel;
 
-public class SocketChannelInitializer implements ChannelInitializer {
+public class ServerDebugSocketChannelInitializer implements ChannelInitializer {
     @Override
-    public void initChannel(ChannelContext ctx, Channel channel) throws Exception {
+    public void initChannel(ChannelContext ctx, Channel channel) {
         ctx.getPipeline().addChannelHandlerLast(new ServerDebugChannelHandler());
     }
 }

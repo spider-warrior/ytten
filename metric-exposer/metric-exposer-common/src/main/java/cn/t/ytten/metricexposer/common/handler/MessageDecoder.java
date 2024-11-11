@@ -1,4 +1,4 @@
-package cn.t.ytten.metricexposer.server;
+package cn.t.ytten.metricexposer.common.handler;
 
 import cn.t.ytten.core.channel.ChannelContext;
 import cn.t.ytten.core.channel.ChannelHandler;
@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class ChannelMessageDecoder implements ChannelHandler {
+public class MessageDecoder implements ChannelHandler {
     @Override
     public void read(ChannelContext ctx, Object msg) throws Exception {
         UnPooledHeapByteBuf buf = (UnPooledHeapByteBuf)msg;

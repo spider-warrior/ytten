@@ -9,7 +9,7 @@ public class MetricExposerClient {
     private final SingleThreadEventLoop ioLoop;
     public void start() {
         ClientBootstrap bootstrap = new ClientBootstrap();
-        bootstrap.start(host, port, ioLoop);
+        bootstrap.start(host, port, ioLoop, new ExposerClientChannelInitializer());
     }
 
     public MetricExposerClient(String host, int port, SingleThreadEventLoop ioLoop) {

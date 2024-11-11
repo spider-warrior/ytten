@@ -4,5 +4,5 @@ import java.nio.channels.Channel;
 
 @FunctionalInterface
 public interface ChannelInitializer {
-    void initChannel(ChannelContext ctx, Channel channel) throws Exception;
+    void initChannel(ChannelContext ctx, Channel channel);
 }

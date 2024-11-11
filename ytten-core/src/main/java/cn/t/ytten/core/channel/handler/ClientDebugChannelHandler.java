@@ -2,7 +2,6 @@ package cn.t.ytten.core.channel.handler;
 
 import cn.t.ytten.core.channel.ChannelContext;
 import cn.t.ytten.core.channel.ChannelHandler;
-import cn.t.ytten.core.channel.UnPooledHeapByteBuf;
 import cn.t.ytten.core.util.LoggingUtil;
 
 import java.util.logging.Logger;
@@ -20,10 +19,7 @@ public class ClientDebugChannelHandler implements ChannelHandler {
 
     @Override
     public void read(ChannelContext ctx, Object msg) throws Exception {
-        UnPooledHeapByteBuf byteBuf = (UnPooledHeapByteBuf)msg;
-        byte[] content = new byte[byteBuf.readableBytes()];
-        byteBuf.readBytes(content);
-        logger.info("client connect channel read: " + new String(content));
+        logger.info("client connect channel read: " + msg);
     }
 
     @Override
