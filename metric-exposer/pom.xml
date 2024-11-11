@@ -17,4 +17,14 @@
         <module>metric-exposer-common</module>
     </modules>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>cn.t</groupId>
+                <artifactId>metric-exposer-common</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
 </project>
