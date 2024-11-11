@@ -5,6 +5,7 @@ import cn.t.ytten.core.channel.ChannelHandler;
 import cn.t.ytten.core.channel.UnPooledHeapByteBuf;
 import cn.t.ytten.core.util.LoggingUtil;
 
+import java.time.LocalDateTime;
 import java.util.logging.Logger;
 
 public class ServerDebugChannelHandler implements ChannelHandler {
@@ -28,7 +29,7 @@ public class ServerDebugChannelHandler implements ChannelHandler {
             byte[] content = new byte[byteBuf.readableBytes()];
             byteBuf.readBytes(content);
             logger.info("server accept channel read: " + new String(content));
-            ctx.invokeChannelWrite(String.valueOf(System.currentTimeMillis()));
+            ctx.invokeChannelWrite("服务端当前时间: " + LocalDateTime.now());
             ctx.flush();
         }
     }

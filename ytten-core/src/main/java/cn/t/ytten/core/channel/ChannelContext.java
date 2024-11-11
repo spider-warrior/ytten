@@ -89,7 +89,7 @@ public class ChannelContext {
     }
 
     public SelectionKey register(Selector selector, int ops) {
-        return this.register(selector, ops, null);
+        return this.register(selector, ops, this);
     }
 
     public SelectionKey register(Selector selector, int ops, Object attachment) {
@@ -112,7 +112,7 @@ public class ChannelContext {
         }
     }
 
-    public SocketAddress remoteAddress() throws IOException {
+    public SocketAddress remoteAddress() {
         return remoteAddress;
     }
 
