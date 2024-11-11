@@ -47,7 +47,14 @@ public class SingleThreadEventLoop implements Runnable {
                         SelectionKey key = it.next();
                         it.remove();
                         if(key.isConnectable()) {
-
+                            SocketChannel socketChannel = ((SocketChannel)key.channel());
+                            ChannelContext ctx = (ChannelContext)key.attachment();
+                            if(socketChannel.finishConnect()) {
+                                ctx.invokeChannelReady();
+                                ctx.register(selector, SelectionKey.OP_READ);
+                            } else {
+                                System.out.println("not connected yet...");
+                            }
                         } else if(key.isAcceptable()) {
                             SocketChannel socketChannel = ((ServerSocketChannel)key.channel()).accept();
                             ((ChannelContext)key.attachment()).invokeChannelRead(socketChannel);

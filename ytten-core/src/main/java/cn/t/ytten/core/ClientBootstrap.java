@@ -1,6 +1,7 @@
 package cn.t.ytten.core;
 
 import cn.t.ytten.core.channel.ChannelContext;
+import cn.t.ytten.core.channel.handler.ClientDebugChannelHandler;
 import cn.t.ytten.core.eventloop.ExecuteChain;
 import cn.t.ytten.core.eventloop.SingleThreadEventLoop;
 
@@ -22,7 +23,7 @@ public class ClientBootstrap {
             return initChannelContext(socketChannel, remoteAddress, ioEventLoop);
         }).map(ctx -> {
             //监听connect事件
-            ctx.register(ioEventLoop.getSelector(), SelectionKey.OP_CONNECT).attach(ctx);
+            ctx.register(ioEventLoop.getSelector(), SelectionKey.OP_CONNECT, ctx);
             return ctx;
         }));
         Thread ioThread = new Thread(ioEventLoop, ioEventLoop.getName());
@@ -31,7 +32,7 @@ public class ClientBootstrap {
 
     private ChannelContext initChannelContext(SocketChannel socketChannel, SocketAddress remoteAddress, SingleThreadEventLoop ioEventLoop) {
         ChannelContext ctx = ChannelContext.socketChannelContext(socketChannel, remoteAddress, ioEventLoop);
-        ctx.getPipeline().addChannelHandlerLast(null);
+        ctx.getPipeline().addChannelHandlerLast(new ClientDebugChannelHandler());
         return ctx;
     }
 

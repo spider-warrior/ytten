@@ -7,14 +7,14 @@ import cn.t.ytten.core.util.LoggingUtil;
 
 import java.util.logging.Logger;
 
-public class DebugChannelHandler implements ChannelHandler {
+public class ServerDebugChannelHandler implements ChannelHandler {
 
-    private static final Logger logger = LoggingUtil.getLogger(DebugChannelHandler.class);
+    private static final Logger logger = LoggingUtil.getLogger(ServerDebugChannelHandler.class);
 
     @Override
     public void ready(ChannelContext ctx) throws Exception {
-        logger.info("channel ready: " + ctx.remoteAddress());
-        ctx.getWriteCache().writeBytes("hello".getBytes());
+        logger.info("server accept channel ready: " + ctx.remoteAddress());
+        ctx.getWriteCache().writeBytes("server hello".getBytes());
         ctx.flush();
     }
 
@@ -27,7 +27,7 @@ public class DebugChannelHandler implements ChannelHandler {
             UnPooledHeapByteBuf byteBuf = (UnPooledHeapByteBuf)msg;
             byte[] content = new byte[byteBuf.readableBytes()];
             byteBuf.readBytes(content);
-            logger.info("channel read: " + new String(content));
+            logger.info("server accept channel read: " + new String(content));
             ctx.invokeChannelWrite(String.valueOf(System.currentTimeMillis()));
             ctx.flush();
         }
@@ -35,7 +35,7 @@ public class DebugChannelHandler implements ChannelHandler {
 
     @Override
     public void write(ChannelContext ctx, Object msg) throws Exception {
-        logger.info("channel write: " + msg);
+        logger.info("server accept channel write: " + msg);
         if(msg != null) {
             ctx.getWriteCache().writeBytes(msg.toString().getBytes());
         }
@@ -43,13 +43,13 @@ public class DebugChannelHandler implements ChannelHandler {
 
     @Override
     public void close(ChannelContext ctx) throws Exception {
-        logger.info("channel close: " + ctx.remoteAddress());
+        logger.info("server accept channel close: " + ctx.remoteAddress());
 
     }
 
     @Override
     public void error(ChannelContext ctx, Throwable t) throws Exception {
-        logger.info("channel error: " + ctx.remoteAddress());
+        logger.info("server accept channel error: " + ctx.remoteAddress());
         ctx.close();
     }
 }
