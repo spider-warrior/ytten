@@ -16,12 +16,13 @@ import cn.t.ytten.metricexposer.common.message.metrics.batch.BatchNetworkInterfa
 import cn.t.ytten.metricexposer.common.message.metrics.batch.BatchNetworkMetric;
 import cn.t.ytten.metricexposer.common.message.request.CmdRequest;
 import cn.t.ytten.metricexposer.common.message.response.CmdResponse;
+import cn.t.ytten.metricexposer.common.util.MsgEncodeUtil;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class MessageDecoder implements ChannelHandler {
+public class MessageCodec implements ChannelHandler {
     @Override
     public void read(ChannelContext ctx, Object msg) throws Exception {
         UnPooledHeapByteBuf buf = (UnPooledHeapByteBuf)msg;
@@ -67,6 +68,11 @@ public class MessageDecoder implements ChannelHandler {
             }
             ctx.invokeNextChannelRead(decodedMsg);
         }
+    }
+
+    @Override
+    public void write(ChannelContext ctx, Object msg) {
+        MsgEncodeUtil.encode(ctx.getWriteCache(), msg);
     }
 
     private static SystemInfo decodeSystemInfo(UnPooledHeapByteBuf buf) {

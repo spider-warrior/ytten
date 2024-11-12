@@ -4,7 +4,6 @@ public class CmdResponse {
 
     private boolean success;
     private String output;
-
     public boolean isSuccess() {
         return success;
     }
