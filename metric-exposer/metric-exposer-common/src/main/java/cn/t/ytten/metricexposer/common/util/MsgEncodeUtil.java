@@ -14,7 +14,6 @@ import cn.t.ytten.metricexposer.common.message.metrics.batch.BatchNetworkMetric;
 import cn.t.ytten.metricexposer.common.message.request.CmdRequest;
 import cn.t.ytten.metricexposer.common.message.response.CmdResponse;
 
-import java.nio.ByteBuffer;
 import java.util.AbstractMap;
 import java.util.Collection;
 import java.util.Map;
@@ -45,28 +44,13 @@ public class MsgEncodeUtil {
     ).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
 
-    private static final Map<Byte, Integer> msgTypeLengthMap = Stream.of(
-            new AbstractMap.SimpleEntry<>(MsgType.HEARTBEAT.value, 5),
-
-            new AbstractMap.SimpleEntry<>(MsgType.SYSTEM_INFO.value, 1024),
-            new AbstractMap.SimpleEntry<>(MsgType.DISC_INFO.value, 256),
-            new AbstractMap.SimpleEntry<>(MsgType.NETWORK_INTERFACE_INFO.value, 256),
-
-            new AbstractMap.SimpleEntry<>(MsgType.SYSTEM_METRIC.value, 1024),
-            new AbstractMap.SimpleEntry<>(MsgType.CPU_METRIC.value, 256),
-            new AbstractMap.SimpleEntry<>(MsgType.MEMORY_METRIC.value, 256),
-            new AbstractMap.SimpleEntry<>(MsgType.DISC_METRIC.value, 256),
-            new AbstractMap.SimpleEntry<>(MsgType.NETWORK_METRIC.value, 256),
-            new AbstractMap.SimpleEntry<>(MsgType.CMD_REQUEST.value, 256),
-            new AbstractMap.SimpleEntry<>(MsgType.CMD_RESPONSE.value, 1024),
-
-            new AbstractMap.SimpleEntry<>(MsgType.BATCH.value, 1024)
-    ).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-
 
     private static final Map<String, byte[]> stringBytesCache = new WeakHashMap<>();
 
     public static UnPooledHeapByteBuf encode(UnPooledHeapByteBuf buf, Object message) {
+        Byte msgType = classMsgTypeMap.get(message.getClass());
+        buf.writeByte(msgType);
+        buf.writeInt(0);
         if(message instanceof SystemInfo) {
             return encode(buf, (SystemInfo)message);
         } else if(message instanceof DiscInfo) {
@@ -369,21 +353,10 @@ public class MsgEncodeUtil {
         return buf.writeInt(bytes.length).writeBytes(bytes);
     }
 
-    private static ByteBuffer allocate(Object msg) {
-        Byte msgType = classMsgTypeMap.get(msg.getClass());
-        Integer length = msgTypeLengthMap.get(msgType);
-        ByteBuffer buffer = ByteBuffer.allocate(length);
-        //length
-        buffer.putInt(0);
-        //message type
-        buffer.put(msgType);
-        return buffer;
-    }
-
     private static void writeLength(UnPooledHeapByteBuf buf) {
-        int length = buf.writerIndex() - 4;
+        int length = buf.writerIndex() - 5;
         int writePosition = buf.writerIndex();
-        buf.writerIndex(0);
+        buf.writerIndex(1);
         buf.writeInt(length);
         buf.writerIndex(writePosition);
     }

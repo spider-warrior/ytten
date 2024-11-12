@@ -1,5 +1,6 @@
 package cn.t.ytten.metricexposer.common.util;
 
+import cn.t.ytten.core.util.LoggingUtil;
 import cn.t.ytten.metricexposer.common.constants.SystemConstants;
 
 import java.io.BufferedReader;
@@ -9,8 +10,11 @@ import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Logger;
 
 public class CommandUtil {
+
+    private static final Logger logger = LoggingUtil.getLogger(CommandUtil.class);
 
     private static final AtomicInteger count = new AtomicInteger(1);
     private static final BlockingQueue<ProcessBuilder> processBuilderQueue = new LinkedBlockingQueue<>();
@@ -34,7 +38,7 @@ public class CommandUtil {
         if(processBuilder == null) {
             processBuilder = new ProcessBuilder(nativeCommand);
             processBuilder.redirectErrorStream(true);
-            System.out.println("新建ProcessBuilder: " + count.getAndIncrement());
+            logger.info("新建ProcessBuilder, index: " + count.getAndIncrement());
         } else {
             processBuilder.command(nativeCommand);
         }
