@@ -48,9 +48,9 @@ public class MsgEncodeUtil {
     private static final Map<String, byte[]> stringBytesCache = new WeakHashMap<>();
 
     public static UnPooledHeapByteBuf encode(UnPooledHeapByteBuf buf, Object message) {
+        buf.writeInt(0);
         Byte msgType = classMsgTypeMap.get(message.getClass());
         buf.writeByte(msgType);
-        buf.writeInt(0);
         if(message instanceof SystemInfo) {
             return encode(buf, (SystemInfo)message);
         } else if(message instanceof DiscInfo) {
@@ -354,9 +354,9 @@ public class MsgEncodeUtil {
     }
 
     private static void writeLength(UnPooledHeapByteBuf buf) {
-        int length = buf.writerIndex() - 5;
+        int length = buf.writerIndex() - 4;
         int writePosition = buf.writerIndex();
-        buf.writerIndex(1);
+        buf.writerIndex(0);
         buf.writeInt(length);
         buf.writerIndex(writePosition);
     }
