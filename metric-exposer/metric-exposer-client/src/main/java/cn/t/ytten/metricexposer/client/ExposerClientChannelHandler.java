@@ -2,46 +2,68 @@ package cn.t.ytten.metricexposer.client;
 
 import cn.t.ytten.core.channel.ChannelContext;
 import cn.t.ytten.core.channel.ChannelHandler;
-import cn.t.ytten.core.eventloop.EventLoopDelayTask;
 import cn.t.ytten.metricexposer.common.message.infos.SystemInfo;
 import cn.t.ytten.metricexposer.common.message.metrics.CpuLoadMetric;
 import cn.t.ytten.metricexposer.common.message.metrics.MemoryMetric;
 import cn.t.ytten.metricexposer.common.message.metrics.batch.BatchDiscMetric;
 import cn.t.ytten.metricexposer.common.message.metrics.batch.BatchNetworkMetric;
+import cn.t.ytten.metricexposer.common.util.ThreadUtil;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ScheduledFuture;
 
 public class ExposerClientChannelHandler implements ChannelHandler {
-    private static final long delayTime = 3000;
+
+    private static final int delayTime = 3000;
+    private final List<ScheduledFuture<?>> scheduledFutureListList = new ArrayList<>(4);
+
     @Override
     public void ready(ChannelContext ctx) throws Exception {
-        //系统消息
-        ctx.getEventLoop().addTask(() -> {
+        //系统信息
+        ThreadUtil.submitTask(() -> {
             SystemInfo message = MetricCollectUtil.collectSystemInfo();
-            ctx.invokeChannelWrite(message);
-            ctx.flush();
+            ctx.getEventLoop().addTask(() -> {
+                ctx.invokeChannelWrite(message);
+                ctx.flush();
+            });
         });
         //cpu采集
-        ctx.getEventLoop().addDelayTask(new EventLoopDelayTask(delayTime, true, () -> {
+        scheduledFutureListList.add(ThreadUtil.scheduleTask(() -> {
             CpuLoadMetric message = MetricCollectUtil.collectCpuMetric();
-            ctx.invokeChannelWrite(message);
-            ctx.flush();
-        }));
+            ctx.getEventLoop().addTask(() -> {
+                ctx.invokeChannelWrite(message);
+                ctx.flush();
+            });
+        }, 0, delayTime));
         //内存采集
-        ctx.getEventLoop().addDelayTask(new EventLoopDelayTask(delayTime, true, () -> {
+        scheduledFutureListList.add(ThreadUtil.scheduleTask(() -> {
             MemoryMetric message = MetricCollectUtil.collectMemoryMetric();
-            ctx.invokeChannelWrite(message);
-            ctx.flush();
-        }));
+            ctx.getEventLoop().addTask(() -> {
+                ctx.invokeChannelWrite(message);
+                ctx.flush();
+            });
+        }, 0, delayTime));
         //network采集
-        ctx.getEventLoop().addDelayTask(new EventLoopDelayTask(delayTime, true, () -> {
-            BatchNetworkMetric message = MetricCollectUtil.collectBatchMetric();
-            ctx.invokeChannelWrite(message);
-            ctx.flush();
-        }));
+        scheduledFutureListList.add(ThreadUtil.scheduleTask(() -> {
+            BatchNetworkMetric message = MetricCollectUtil.collectBatchNetworkMetric();
+            ctx.getEventLoop().addTask(() -> {
+                ctx.invokeChannelWrite(message);
+                ctx.flush();
+            });
+        }, 0, delayTime));
         //磁盘采集
-        ctx.getEventLoop().addDelayTask(new EventLoopDelayTask(delayTime, true, () -> {
+        scheduledFutureListList.add(ThreadUtil.scheduleTask(() -> {
             BatchDiscMetric message = MetricCollectUtil.collectBatchDiscMetric();
-            ctx.invokeChannelWrite(message);
-            ctx.flush();
-        }));
+            ctx.getEventLoop().addTask(() -> {
+                ctx.invokeChannelWrite(message);
+                ctx.flush();
+            });
+        }, 0, delayTime));
+    }
+
+    @Override
+    public void close(ChannelContext ctx) throws Exception {
+        scheduledFutureListList.forEach(scheduledFuture -> scheduledFuture.cancel(true));
     }
 }

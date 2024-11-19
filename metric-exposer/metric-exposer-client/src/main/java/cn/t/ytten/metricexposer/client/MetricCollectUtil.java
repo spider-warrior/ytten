@@ -164,7 +164,7 @@ public class MetricCollectUtil {
         return cpuLoadMetric;
     }
 
-    public static BatchNetworkMetric collectBatchMetric() {
+    public static BatchNetworkMetric collectBatchNetworkMetric() {
         return netWorkMetricCollector.bytePerSecond();
     }
 
