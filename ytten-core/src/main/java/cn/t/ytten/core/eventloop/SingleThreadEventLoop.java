@@ -25,7 +25,7 @@ public class SingleThreadEventLoop implements Runnable {
     private static final int defaultIoLoopTimes = 5;
     private final ByteBuffer tmp = ByteBuffer.allocate(1024*1024);
     private final BlockingQueue<Runnable> inTimeTask = new LinkedBlockingQueue<>();
-    private final PriorityBlockingQueue<EventLoopDelayTask> delayTaskQueue = new PriorityBlockingQueue<>(10, Comparator.comparingLong(EventLoopDelayTask::getRate));
+    private final PriorityBlockingQueue<EventLoopDelayTask> delayTaskQueue = new PriorityBlockingQueue<>(10, Comparator.comparingLong(EventLoopDelayTask::getRunAt));
     private final String name;
     private final Selector selector;
     private volatile int state = EventLoopState.NOT_STARTED;
