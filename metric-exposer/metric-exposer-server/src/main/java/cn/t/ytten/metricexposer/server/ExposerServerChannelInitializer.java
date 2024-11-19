@@ -10,6 +10,6 @@ public class ExposerServerChannelInitializer implements ChannelInitializer {
     @Override
     public void initChannel(ChannelContext ctx, Channel channel) {
         ctx.getPipeline().addChannelHandlerLast(new MessageCodec());
-//        ctx.getPipeline().addChannelHandlerLast(new ServerDebugChannelHandler());
+        ctx.getPipeline().addChannelHandlerLast(new LogMessageChannelHandler());
     }
 }

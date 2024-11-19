@@ -34,14 +34,16 @@ public class ChannelContext {
         pipeline.invokeNextChannelRead(this, msg);
     }
 
-    public void flush() throws IOException {
+    public void flush() {
         if(selectableChannel instanceof SocketChannel) {
             if(writeCache.readableBytes() > 0) {
                 ByteBuffer buffer = ByteBufferUtil.allocate();
                 while (writeCache.readableBytes() > 0) {
                     writeCache.readBytes(buffer);
                     buffer.flip();
-                    ((SocketChannel)selectableChannel).write(buffer);
+                    try { ((SocketChannel)selectableChannel).write(buffer);} catch (IOException e) {
+                        throw new ChannelException(e);
+                    }
                     buffer.clear();
                 }
             }

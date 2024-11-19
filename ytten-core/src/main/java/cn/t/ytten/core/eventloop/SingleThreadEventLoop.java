@@ -24,7 +24,7 @@ public class SingleThreadEventLoop implements Runnable {
     private static final int defaultSelectTimeInMills = 3000;
     private static final int defaultIoLoopTimes = 5;
     private final ByteBuffer tmp = ByteBuffer.allocate(1024*1024);
-    private final BlockingQueue<ExecuteChain<?>> inTimeTask = new LinkedBlockingQueue<>();
+    private final BlockingQueue<Runnable> inTimeTask = new LinkedBlockingQueue<>();
     private final PriorityBlockingQueue<EventLoopDelayTask> delayTaskQueue = new PriorityBlockingQueue<>(10, Comparator.comparingLong(EventLoopDelayTask::getExecuteTimePointInMills));
     private final String name;
     private final Selector selector;
@@ -111,11 +111,11 @@ public class SingleThreadEventLoop implements Runnable {
 
     private void runInTimeTask() {
         while (true) {
-            ExecuteChain<?> chain = inTimeTask.poll();
-            if(chain == null) {
+            Runnable runnable = inTimeTask.poll();
+            if(runnable == null) {
                 break;
             }
-            chain.execute();
+            runnable.run();
         }
     }
 
@@ -132,8 +132,8 @@ public class SingleThreadEventLoop implements Runnable {
         }
     }
 
-    public <V> void addTask(ExecuteChain<V> chain) {
-        inTimeTask.add(chain);
+    public <V> void addTask(Runnable runnable) {
+        inTimeTask.add(runnable);
     }
 
     public void addDelayTask(EventLoopDelayTask delayTask) {

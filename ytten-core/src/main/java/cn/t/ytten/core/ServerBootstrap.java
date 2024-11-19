@@ -3,8 +3,8 @@ package cn.t.ytten.core;
 import cn.t.ytten.core.channel.ChannelContext;
 import cn.t.ytten.core.channel.ChannelInitializer;
 import cn.t.ytten.core.channel.handler.ConnectionAcceptHandler;
-import cn.t.ytten.core.eventloop.ExecuteChain;
 import cn.t.ytten.core.eventloop.SingleThreadEventLoop;
+import cn.t.ytten.core.exception.ChannelException;
 import cn.t.ytten.core.util.LoggingUtil;
 
 import java.io.IOException;
@@ -33,22 +33,20 @@ public class ServerBootstrap {
     }
 
     public void start(int port, SingleThreadEventLoop acceptEventLoop, SingleThreadEventLoop ioEventLoop, ChannelInitializer initializer) {
-        acceptEventLoop.addTask(new ExecuteChain<>(() -> {
-            //构建ServerSocketChannel
-            return bind(port);
-        }).map(channel -> {
-            logger.info("端口绑定完成: " + channel.socket());
-            //初始化context
-            return initChannelContext(channel, acceptEventLoop, ioEventLoop, initializer);
-        }).map(ctx -> {
-            logger.info("serverChannel初始化完成");
-            //监听accept事件
-            ctx.register(acceptEventLoop.getSelector(), SelectionKey.OP_ACCEPT).attach(ctx);
-            return ctx;
-        }).map(ctx -> {
-            logger.info("accept注册完成");
-            return ctx;
-        }));
+        acceptEventLoop.addTask(() -> {
+            try {
+                //构建ServerSocketChannel
+                ServerSocketChannel serverSocketChannel = bind(port);
+                logger.info("端口绑定完成: " + serverSocketChannel.socket());
+                ChannelContext ctx = initChannelContext(serverSocketChannel, acceptEventLoop, ioEventLoop, initializer);
+                logger.info("serverChannel初始化完成");
+                //监听accept事件
+                ctx.register(acceptEventLoop.getSelector(), SelectionKey.OP_ACCEPT).attach(ctx);
+                logger.info("accept注册完成");
+            } catch (IOException e) {
+                throw new ChannelException(e);
+            }
+        });
         Thread acceptThread = new Thread(acceptEventLoop, acceptEventLoop.getName());
         acceptThread.start();
         if(acceptEventLoop != ioEventLoop) {

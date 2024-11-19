@@ -3,7 +3,6 @@ package cn.t.ytten.core.channel.handler;
 import cn.t.ytten.core.channel.ChannelContext;
 import cn.t.ytten.core.channel.ChannelHandler;
 import cn.t.ytten.core.channel.ChannelInitializer;
-import cn.t.ytten.core.eventloop.ExecuteChain;
 import cn.t.ytten.core.eventloop.SingleThreadEventLoop;
 
 import java.net.StandardSocketOptions;
@@ -32,10 +31,7 @@ public class ConnectionAcceptHandler implements ChannelHandler {
             subCtx.register(ioEventLoop.getSelector(), SelectionKey.OP_READ).attach(subCtx);
         } else {
             //有可能会等到下次loop才能执行
-            ioEventLoop.addTask(new ExecuteChain<>(() -> {
-                subCtx.register(ioEventLoop.getSelector(), SelectionKey.OP_READ).attach(subCtx);
-                return subCtx;
-            }));
+            ioEventLoop.addTask(() -> subCtx.register(ioEventLoop.getSelector(), SelectionKey.OP_READ).attach(subCtx));
         }
     }
 
