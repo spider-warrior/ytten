@@ -121,16 +121,19 @@ public class SingleThreadEventLoop implements Runnable {
 
     private long runDelayTasK() {
         while (true) {
-            EventLoopDelayTask delayTask = delayTaskQueue.poll();
+            EventLoopDelayTask delayTask = delayTaskQueue.peek();
             if(delayTask == null) {
                 return -1;
             } else if(delayTask.getRunAt() > System.currentTimeMillis()) {
                 return delayTask.getRunAt();
             } else {
-                delayTask.getRunnable().run();
-                if(delayTask.isRepeat()) {
-                    delayTask.markNextRunAt();
-                    delayTaskQueue.add(delayTask);
+                delayTask = delayTaskQueue.poll();
+                if(delayTask != null) {
+                    delayTask.getRunnable().run();
+                    if(delayTask.isRepeat()) {
+                        delayTask.markNextRunAt();
+                        delayTaskQueue.add(delayTask);
+                    }
                 }
             }
         }
