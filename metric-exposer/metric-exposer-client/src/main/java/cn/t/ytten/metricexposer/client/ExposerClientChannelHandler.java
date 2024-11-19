@@ -15,11 +15,11 @@ import java.util.concurrent.ScheduledFuture;
 
 public class ExposerClientChannelHandler implements ChannelHandler {
 
-    private static final int delayTime = 3000;
+    private static final int delayTime = 3;
     private final List<ScheduledFuture<?>> scheduledFutureListList = new ArrayList<>(4);
 
     @Override
-    public void ready(ChannelContext ctx) throws Exception {
+    public void ready(ChannelContext ctx) {
         //系统信息
         ThreadUtil.submitTask(() -> {
             SystemInfo message = MetricCollectUtil.collectSystemInfo();
