@@ -25,7 +25,7 @@ public class SingleThreadEventLoop implements Runnable {
     private static final int defaultIoLoopTimes = 5;
     private final ByteBuffer tmp = ByteBuffer.allocate(1024*1024);
     private final BlockingQueue<Runnable> inTimeTask = new LinkedBlockingQueue<>();
-    private final PriorityBlockingQueue<EventLoopDelayTask> delayTaskQueue = new PriorityBlockingQueue<>(10, Comparator.comparingLong(EventLoopDelayTask::getExecuteTimePointInMills));
+    private final PriorityBlockingQueue<EventLoopDelayTask> delayTaskQueue = new PriorityBlockingQueue<>(10, Comparator.comparingLong(EventLoopDelayTask::getRate));
     private final String name;
     private final Selector selector;
     private volatile int state = EventLoopState.NOT_STARTED;
@@ -124,15 +124,19 @@ public class SingleThreadEventLoop implements Runnable {
             EventLoopDelayTask delayTask = delayTaskQueue.poll();
             if(delayTask == null) {
                 return -1;
-            } else if(delayTask.getExecuteTimePointInMills() > System.currentTimeMillis()) {
-                return delayTask.getExecuteTimePointInMills();
+            } else if(delayTask.getRunAt() > System.currentTimeMillis()) {
+                return delayTask.getRunAt();
             } else {
-                delayTask.getTask().run();
+                delayTask.getRunnable().run();
+                if(delayTask.isRepeat()) {
+                    delayTask.markNextRunAt();
+                    delayTaskQueue.add(delayTask);
+                }
             }
         }
     }
 
-    public <V> void addTask(Runnable runnable) {
+    public void addTask(Runnable runnable) {
         inTimeTask.add(runnable);
     }
 
