@@ -50,10 +50,12 @@ public class ChannelPipeline {
     }
 
     public void invokeNextChannelReady(ChannelHandler handler, ChannelContext ctx) {
-        try {
-            handler.ready(ctx);
-        } catch (Throwable t) {
-            invokeChannelError(ctx, t);
+        if (handler != null) {
+            try {
+                handler.ready(ctx);
+            } catch (Throwable t) {
+                invokeChannelError(ctx, t);
+            }
         }
     }
 
@@ -66,10 +68,12 @@ public class ChannelPipeline {
     }
 
     public void invokeNextChannelRead(ChannelHandler handler, ChannelContext ctx, Object msg) {
-        try {
-            handler.read(ctx, msg);
-        } catch (Throwable t) {
-            invokeChannelError(ctx, t);
+        if (handler != null) {
+            try {
+                handler.read(ctx, msg);
+            } catch (Throwable t) {
+                invokeChannelError(ctx, t);
+            }
         }
     }
 
@@ -82,10 +86,12 @@ public class ChannelPipeline {
     }
 
     public void invokeNextChannelWrite(ChannelHandler handler, ChannelContext ctx, Object msg) {
-        try {
-            handler.write(ctx, msg);
-        } catch (Throwable t) {
-            invokeChannelError(ctx, t);
+        if (handler != null) {
+            try {
+                handler.write(ctx, msg);
+            } catch (Throwable t) {
+                invokeChannelError(ctx, t);
+            }
         }
     }
 
@@ -98,10 +104,12 @@ public class ChannelPipeline {
     }
 
     public void invokeNextChannelClose(ChannelHandler handler, ChannelContext ctx) {
-        try {
-            handler.close(ctx);
-        } catch (Throwable t) {
-            invokeChannelError(ctx, t);
+        if (handler != null) {
+            try {
+                handler.close(ctx);
+            } catch (Throwable t) {
+                invokeChannelError(ctx, t);
+            }
         }
     }
 
@@ -115,12 +123,13 @@ public class ChannelPipeline {
 
     public void invokeNextChannelError(ChannelHandler handler, ChannelContext ctx, Throwable t) {
         if(handler == null) {
-            throw new UnHandleException(t);
-        }
-        try {
-            handler.error(ctx, t);
-        } catch (Throwable subThrowable) {
-            invokeNextChannelError(nextHandler(handler), ctx, subThrowable);
+            logger.warning("channelError事件未处理: " + t);
+        } else {
+            try {
+                handler.error(ctx, t);
+            } catch (Throwable subThrowable) {
+                invokeNextChannelError(nextHandler(handler), ctx, subThrowable);
+            }
         }
     }
 }
