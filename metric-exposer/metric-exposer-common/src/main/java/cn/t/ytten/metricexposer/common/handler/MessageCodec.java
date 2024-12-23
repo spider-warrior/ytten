@@ -26,10 +26,10 @@ public class MessageCodec implements ChannelHandler {
     @Override
     public void read(ChannelContext ctx, Object msg) throws Exception {
         UnPooledHeapByteBuf buf = (UnPooledHeapByteBuf)msg;
-        if(buf.readableBytes() < 4) {
-            return;
-        }
         while (true) {
+            if(buf.readableBytes() < 4) {
+                return;
+            }
             int readerIndex = buf.readerIndex();
             int length = buf.readInt();
             if(buf.readableBytes() < length) {
