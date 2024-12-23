@@ -327,9 +327,9 @@ public class MsgEncodeUtil {
         //rx bytes
         buf.writeLong(networkMetric.getReceiveBytes());
         //upload
-        buf.writeLong(networkMetric.getUploadBytePerSecond());
+        buf.writeInt(networkMetric.getUploadBytePerSecond());
         //download
-        buf.writeLong(networkMetric.getDownloadBytePerSecond());
+        buf.writeInt(networkMetric.getDownloadBytePerSecond());
     }
 
     private static void writeDiscMetricCollection(UnPooledHeapByteBuf buf, Collection<DiscMetric> discMetricCollection) {
