@@ -3,7 +3,7 @@ package cn.t.ytten.core.channel;
 
 public interface ChannelHandler {
     default void ready(ChannelContext ctx) throws Exception {
-        ctx.invokeNextChannelReady();
+        ctx.invokeNextChannelReady(this);
     }
     default void read(ChannelContext ctx, Object msg) throws Exception {
         ctx.invokeNextChannelRead(this, msg);

@@ -22,8 +22,8 @@ public class ChannelContext {
         pipeline.invokeChannelReady(this);
     }
 
-    public void invokeNextChannelReady() {
-        pipeline.invokeNextChannelReady(null, this);
+    public void invokeNextChannelReady(ChannelHandler handler) {
+        pipeline.invokeNextChannelReady(handler, this);
     }
 
     public void invokeChannelRead(Object msg) {
