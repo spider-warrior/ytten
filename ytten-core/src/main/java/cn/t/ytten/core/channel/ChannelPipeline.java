@@ -6,7 +6,6 @@ import cn.t.ytten.core.util.ExceptionUtil;
 import cn.t.ytten.core.util.LoggingUtil;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -14,12 +13,6 @@ public class ChannelPipeline {
 
     private static final Logger logger = LoggingUtil.getLogger(ChannelPipeline.class);
     private final List<ChannelHandler> channelHandlerList = new ArrayList<>();
-
-    private Iterator<ChannelHandler> channelReadyIt;
-    private Iterator<ChannelHandler> channelReadIt;
-    private Iterator<ChannelHandler> channelWriteIt;
-    private Iterator<ChannelHandler> channelCloseIt;
-    private Iterator<ChannelHandler> channelErrorIt;
 
     public void addChannelHandlerLast(ChannelHandler channelHandler) {
         this.channelHandlerList.add(channelHandler);
@@ -33,15 +26,23 @@ public class ChannelPipeline {
         if(channelHandlerList.isEmpty()) {
             logger.warning("channelReady事件未处理");
         } else {
-            this.channelReadyIt = channelHandlerList.iterator();
-            this.invokeNextChannelReady(ctx);
+            this.invokeNextChannelReady(null, ctx);
         }
     }
 
-    public void invokeNextChannelReady(ChannelContext ctx) {
+    public void invokeNextChannelReady(ChannelHandler handler, ChannelContext ctx) {
         try {
-            if(channelReadyIt.hasNext()) {
-                channelReadyIt.next().ready(ctx);
+            if(handler == null) {
+                channelHandlerList.get(0).ready(ctx);
+            } else {
+                for (int i = 0; i < channelHandlerList.size(); i++) {
+                    if(channelHandlerList.get(i) == handler) {
+                        int nextIndex = i + 1;
+                        if(nextIndex < channelHandlerList.size()) {
+                            channelHandlerList.get(nextIndex).ready(ctx);
+                        }
+                    }
+                }
             }
         } catch (Throwable t) {
             invokeChannelError(ctx, t);
@@ -52,15 +53,23 @@ public class ChannelPipeline {
         if(channelHandlerList.isEmpty()) {
             logger.warning("channelRead事件未处理");
         } else {
-            this.channelReadIt = channelHandlerList.iterator();
-            this.invokeNextChannelRead(ctx, msg);
+            this.invokeNextChannelRead(null, ctx, msg);
         }
     }
 
-    public void invokeNextChannelRead(ChannelContext ctx, Object msg) {
+    public void invokeNextChannelRead(ChannelHandler handler, ChannelContext ctx, Object msg) {
         try {
-            if(channelReadIt.hasNext()) {
-                channelReadIt.next().read(ctx, msg);
+            if(handler == null) {
+                channelHandlerList.get(0).read(ctx, msg);
+            } else {
+                for (int i = 0; i < channelHandlerList.size(); i++) {
+                    if(channelHandlerList.get(i) == handler) {
+                        int nextIndex = i + 1;
+                        if(nextIndex < channelHandlerList.size()) {
+                            channelHandlerList.get(nextIndex).read(ctx, msg);
+                        }
+                    }
+                }
             }
         } catch (Throwable t) {
             invokeChannelError(ctx, t);
@@ -71,15 +80,23 @@ public class ChannelPipeline {
         if(channelHandlerList.isEmpty()) {
             logger.warning("channelWrite事件未处理");
         } else {
-            this.channelWriteIt = channelHandlerList.iterator();
-            this.invokeNextChannelWrite(ctx, msg);
+            this.invokeNextChannelWrite(null, ctx, msg);
         }
     }
 
-    public void invokeNextChannelWrite(ChannelContext ctx, Object msg) {
+    public void invokeNextChannelWrite(ChannelHandler handler, ChannelContext ctx, Object msg) {
         try {
-            if(channelWriteIt.hasNext()) {
-                this.channelWriteIt.next().write(ctx, msg);
+            if(handler == null) {
+                channelHandlerList.get(0).write(ctx, msg);
+            } else {
+                for (int i = 0; i < channelHandlerList.size(); i++) {
+                    if(channelHandlerList.get(i) == handler) {
+                        int nextIndex = i + 1;
+                        if(nextIndex < channelHandlerList.size()) {
+                            channelHandlerList.get(nextIndex).write(ctx, msg);
+                        }
+                    }
+                }
             }
         } catch (Throwable t) {
             invokeChannelError(ctx, t);
@@ -90,15 +107,23 @@ public class ChannelPipeline {
         if(channelHandlerList.isEmpty()) {
             logger.warning("channelClose事件未处理");
         } else {
-            this.channelCloseIt = channelHandlerList.iterator();
-            this.invokeNextChannelClose(ctx);
+            this.invokeNextChannelClose(null, ctx);
         }
     }
 
-    public void invokeNextChannelClose(ChannelContext ctx) {
+    public void invokeNextChannelClose(ChannelHandler handler, ChannelContext ctx) {
         try {
-            if(channelCloseIt.hasNext()) {
-                this.channelCloseIt.next().close(ctx);
+            if(handler == null) {
+                channelHandlerList.get(0).close(ctx);
+            } else {
+                for (int i = 0; i < channelHandlerList.size(); i++) {
+                    if(channelHandlerList.get(i) == handler) {
+                        int nextIndex = i + 1;
+                        if(nextIndex < channelHandlerList.size()) {
+                            channelHandlerList.get(nextIndex).close(ctx);
+                        }
+                    }
+                }
             }
         } catch (Throwable t) {
             invokeChannelError(ctx, t);
@@ -109,21 +134,35 @@ public class ChannelPipeline {
         if(channelHandlerList.isEmpty()) {
             logger.warning("channelError事件未处理");
         } else {
-            this.channelErrorIt = channelHandlerList.iterator();
-            this.invokeNextChannelError(ctx, t);
+            this.invokeNextChannelError(null, ctx, t);
         }
     }
 
-    public void invokeNextChannelError(ChannelContext ctx, Throwable t) {
+    public void invokeNextChannelError(ChannelHandler handler, ChannelContext ctx, Throwable t) {
+        ChannelHandler next = null;
         try {
-            if(channelErrorIt.hasNext()) {
-                channelErrorIt.next().error(ctx, t);
+            if(handler == null) {
+                next = channelHandlerList.get(0);
+                next.error(ctx, t);
             } else {
+                for (int i = 0; i < channelHandlerList.size(); i++) {
+                    if(channelHandlerList.get(i) == handler) {
+                        int nextIndex = i + 1;
+                        if(nextIndex < channelHandlerList.size()) {
+                            next = channelHandlerList.get(nextIndex);
+                            next.error(ctx, t);
+                        }
+                    }
+                }
+            }
+            if(next == null) {
                 throw new UnHandleException(t);
             }
         } catch (Throwable subThrowable) {
-            if(channelErrorIt.hasNext()) {
-                invokeNextChannelError(ctx, t);
+            if(subThrowable instanceof UnHandleException) {
+                throw (UnHandleException)subThrowable;
+            } else if(next != null) {
+                invokeNextChannelError(next, ctx, subThrowable);
             } else {
                 logger.warning("未处理的异常: "+ subThrowable.getMessage() +"\n" + ExceptionUtil.getStackTrace(subThrowable));
             }

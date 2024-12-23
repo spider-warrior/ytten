@@ -23,15 +23,15 @@ public class ChannelContext {
     }
 
     public void invokeNextChannelReady() {
-        pipeline.invokeNextChannelReady(this);
+        pipeline.invokeNextChannelReady(null, this);
     }
 
     public void invokeChannelRead(Object msg) {
         pipeline.invokeChannelRead(this, msg);
     }
 
-    public void invokeNextChannelRead(Object msg) {
-        pipeline.invokeNextChannelRead(this, msg);
+    public void invokeNextChannelRead(ChannelHandler handler, Object msg) {
+        pipeline.invokeNextChannelRead(handler, this, msg);
     }
 
     public void flush() {
@@ -54,24 +54,24 @@ public class ChannelContext {
         pipeline.invokeChannelWrite(this, msg);
     }
 
-    public void invokeNextChannelWrite(Object msg) {
-        pipeline.invokeNextChannelWrite(this, msg);
+    public void invokeNextChannelWrite(ChannelHandler handler, Object msg) {
+        pipeline.invokeNextChannelWrite(handler, this, msg);
     }
 
     public void invokeChannelClose() {
         pipeline.invokeChannelClose(this);
     }
 
-    public void invokeNextChannelClose() {
-        pipeline.invokeNextChannelClose(this);
+    public void invokeNextChannelClose(ChannelHandler handler) {
+        pipeline.invokeNextChannelClose(handler, this);
     }
 
     public void invokeChannelError(Throwable t) {
         pipeline.invokeChannelError(this, t);
     }
 
-    public void invokeNextChannelError(Throwable t) {
-        pipeline.invokeNextChannelError(this, t);
+    public void invokeNextChannelError(ChannelHandler handler, Throwable t) {
+        pipeline.invokeNextChannelError(handler,this, t);
     }
 
     public SingleThreadEventLoop getEventLoop() {

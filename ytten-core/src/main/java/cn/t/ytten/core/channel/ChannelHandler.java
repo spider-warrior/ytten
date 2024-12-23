@@ -6,15 +6,15 @@ public interface ChannelHandler {
         ctx.invokeNextChannelReady();
     }
     default void read(ChannelContext ctx, Object msg) throws Exception {
-        ctx.invokeNextChannelRead(msg);
+        ctx.invokeNextChannelRead(this, msg);
     }
     default void write(ChannelContext ctx, Object msg) throws Exception {
-        ctx.invokeNextChannelWrite(msg);
+        ctx.invokeNextChannelWrite(this, msg);
     }
     default void close(ChannelContext ctx) throws Exception {
-        ctx.invokeNextChannelClose();
+        ctx.invokeNextChannelClose(this);
     }
     default void error(ChannelContext ctx, Throwable t) throws Exception {
-        ctx.invokeNextChannelError(t);
+        ctx.invokeNextChannelError(this, t);
     }
 }
