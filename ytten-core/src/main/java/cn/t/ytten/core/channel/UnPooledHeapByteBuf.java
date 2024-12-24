@@ -199,16 +199,12 @@ public class UnPooledHeapByteBuf {
         }
     }
 
-    private void compact(int startIndex, int count) {
-        for (int i = startIndex; i < startIndex + count; i++) {
-            buf[i-startIndex] = buf[i];
+    private void compact(int readerIndex, int count) {
+        for (int writerIndex = 0;  writerIndex < count; readerIndex++, writerIndex++) {
+            buf[writerIndex] = buf[readerIndex];
         }
-        //clear(有writerIndex做边界限制，可以不用清理)
-//        for (int i = count; i < startIndex + count; i++) {
-//            buf[i] = 0;
-//        }
-        readerIndex = 0;
-        writerIndex = count;
+        this.readerIndex = 0;
+        this.writerIndex = count;
     }
 
     public UnPooledHeapByteBuf() {
