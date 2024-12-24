@@ -103,7 +103,7 @@ public class SingleThreadEventLoop implements Runnable {
         } catch (Throwable t) {
             logger.warning("未处理异常: " + ExceptionUtil.getErrorMessage(t));
         } finally {
-//            try { selector.close();} catch (Exception ignore) {};
+            try { selector.close();} catch (Exception ignore) {};
         }
     }
 

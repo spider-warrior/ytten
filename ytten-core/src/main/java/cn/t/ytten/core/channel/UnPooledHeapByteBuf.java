@@ -105,11 +105,10 @@ public class UnPooledHeapByteBuf {
         return this;
     }
 
-    public UnPooledHeapByteBuf writeLong(long value) {
+    public void writeLong(long value) {
         ensureWritable(8);
         HeapByteBufUtil.setLong(buf, writerIndex, value);
         writerIndex += 8;
-        return this;
     }
 
     public UnPooledHeapByteBuf writeChar(int value) {
@@ -120,8 +119,8 @@ public class UnPooledHeapByteBuf {
         return writeInt(Float.floatToRawIntBits(value));
     }
 
-    public UnPooledHeapByteBuf writeDouble(double value) {
-        return writeLong(Double.doubleToRawLongBits(value));
+    public void writeDouble(double value) {
+        writeLong(Double.doubleToRawLongBits(value));
     }
 
     public UnPooledHeapByteBuf writeBytes(byte[] src, int srcIndex, int length) {
@@ -135,12 +134,11 @@ public class UnPooledHeapByteBuf {
         return writeBytes(src, 0, src.length);
     }
 
-    public UnPooledHeapByteBuf writeBytes(ByteBuffer src) {
+    public void writeBytes(ByteBuffer src) {
         int length = src.remaining();
         ensureWritable(length);
         src.get(buf, writerIndex, src.remaining());
         writerIndex += length;
-        return this;
     }
 
     public int writerIndex() {
@@ -151,14 +149,12 @@ public class UnPooledHeapByteBuf {
         return readerIndex;
     }
 
-    public UnPooledHeapByteBuf readerIndex(int readerIndex) {
+    public void readerIndex(int readerIndex) {
         this.readerIndex = readerIndex;
-        return this;
     }
 
-    public UnPooledHeapByteBuf writerIndex(int writerIndex) {
+    public void writerIndex(int writerIndex) {
         this.writerIndex = writerIndex;
-        return this;
     }
 
     public int readableBytes() {
