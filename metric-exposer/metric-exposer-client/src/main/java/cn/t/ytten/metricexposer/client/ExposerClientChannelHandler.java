@@ -24,7 +24,7 @@ public class ExposerClientChannelHandler implements ChannelHandler {
         ThreadUtil.submitTask(() -> {
             SystemInfo message = MetricCollectUtil.collectSystemInfo();
             ctx.getEventLoop().addTask(() -> {
-                ctx.invokeChannelWrite(message);
+                ctx.getPipeline().invokeChannelWrite(ctx, message);
                 ctx.flush();
             });
         });
@@ -32,7 +32,7 @@ public class ExposerClientChannelHandler implements ChannelHandler {
         scheduledFutureListList.add(ThreadUtil.scheduleTask(() -> {
             CpuLoadMetric message = MetricCollectUtil.collectCpuMetric();
             ctx.getEventLoop().addTask(() -> {
-                ctx.invokeChannelWrite(message);
+                ctx.getPipeline().invokeChannelWrite(ctx, message);
                 ctx.flush();
             });
         }, 0, delayTime));
@@ -40,7 +40,7 @@ public class ExposerClientChannelHandler implements ChannelHandler {
         scheduledFutureListList.add(ThreadUtil.scheduleTask(() -> {
             MemoryMetric message = MetricCollectUtil.collectMemoryMetric();
             ctx.getEventLoop().addTask(() -> {
-                ctx.invokeChannelWrite(message);
+                ctx.getPipeline().invokeChannelWrite(ctx, message);
                 ctx.flush();
             });
         }, 0, delayTime));
@@ -48,7 +48,7 @@ public class ExposerClientChannelHandler implements ChannelHandler {
         scheduledFutureListList.add(ThreadUtil.scheduleTask(() -> {
             BatchNetworkMetric message = MetricCollectUtil.collectBatchNetworkMetric();
             ctx.getEventLoop().addTask(() -> {
-                ctx.invokeChannelWrite(message);
+                ctx.getPipeline().invokeChannelWrite(ctx, message);
                 ctx.flush();
             });
         }, 0, delayTime));
@@ -56,7 +56,7 @@ public class ExposerClientChannelHandler implements ChannelHandler {
         scheduledFutureListList.add(ThreadUtil.scheduleTask(() -> {
             BatchDiscMetric message = MetricCollectUtil.collectBatchDiscMetric();
             ctx.getEventLoop().addTask(() -> {
-                ctx.invokeChannelWrite(message);
+                ctx.getPipeline().invokeChannelWrite(ctx, message);
                 ctx.flush();
             });
         }, 0, delayTime));

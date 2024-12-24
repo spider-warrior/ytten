@@ -50,25 +50,23 @@ public class SingleThreadEventLoop implements Runnable {
                     while (it.hasNext()) {
                         SelectionKey key = it.next();
                         it.remove();
+                        ChannelContext ctx = (ChannelContext)key.attachment();
                         if(key.isConnectable()) {
                             SocketChannel socketChannel = ((SocketChannel)key.channel());
-                            ChannelContext ctx = (ChannelContext)key.attachment();
                             if(socketChannel.finishConnect()) {
-                                ctx.invokeChannelReady();
+                                ctx.getPipeline().invokeChannelReady(ctx);
                                 ctx.register(selector, SelectionKey.OP_READ);
                             } else {
                                 System.out.println("not connected yet...");
                             }
                         } else if(key.isAcceptable()) {
                             SocketChannel socketChannel = ((ServerSocketChannel)key.channel()).accept();
-                            ((ChannelContext)key.attachment()).invokeChannelRead(socketChannel);
+                            ctx.getPipeline().invokeChannelRead(ctx, socketChannel);
                         }
                         if(key.isWritable()) {
-                            ChannelContext ctx = (ChannelContext)key.attachment();
-                            ctx.invokeChannelWrite(ctx.getWriteCache());
+                            ctx.getPipeline().invokeChannelWrite(ctx, ctx.getWriteCache());
                         }
                         if(key.isReadable()) {
-                            ChannelContext ctx = (ChannelContext)key.attachment();
                             int lastReadLength = 0;
                             for (int i = 0; i < defaultIoLoopTimes; i++) {
                                 try {
@@ -92,11 +90,11 @@ public class SingleThreadEventLoop implements Runnable {
                                 }
                             }
                             if(lastReadLength > -1) {
-                                ctx.invokeChannelRead(ctx.getReadCache());
+                                ctx.getPipeline().invokeChannelRead(ctx, ctx.getReadCache());
                             } else {
                                 key.cancel();
                                 //连接已关闭
-                                ctx.invokeChannelClose();
+                                ctx.getPipeline().invokeChannelClose(ctx);
                             }
                         }
                     }

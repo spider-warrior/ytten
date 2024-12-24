@@ -18,22 +18,6 @@ public class ChannelContext {
     private final UnPooledHeapByteBuf readCache;
     private final UnPooledHeapByteBuf writeCache;
 
-    public void invokeChannelReady() {
-        pipeline.invokeChannelReady(this);
-    }
-
-    public void invokeNextChannelReady(ChannelHandler handler) {
-        pipeline.invokeNextChannelReady(handler, this);
-    }
-
-    public void invokeChannelRead(Object msg) {
-        pipeline.invokeChannelRead(this, msg);
-    }
-
-    public void invokeNextChannelRead(ChannelHandler handler, Object msg) {
-        pipeline.invokeNextChannelRead(handler, this, msg);
-    }
-
     public void flush() {
         if(selectableChannel instanceof SocketChannel) {
             if(writeCache.readableBytes() > 0) {
@@ -48,30 +32,6 @@ public class ChannelContext {
                 }
             }
         }
-    }
-
-    public void invokeChannelWrite(Object msg) {
-        pipeline.invokeChannelWrite(this, msg);
-    }
-
-    public void invokeNextChannelWrite(ChannelHandler handler, Object msg) {
-        pipeline.invokeNextChannelWrite(handler, this, msg);
-    }
-
-    public void invokeChannelClose() {
-        pipeline.invokeChannelClose(this);
-    }
-
-    public void invokeNextChannelClose(ChannelHandler handler) {
-        pipeline.invokeNextChannelClose(handler, this);
-    }
-
-    public void invokeChannelError(Throwable t) {
-        pipeline.invokeChannelError(this, t);
-    }
-
-    public void invokeNextChannelError(ChannelHandler handler, Throwable t) {
-        pipeline.invokeNextChannelError(handler,this, t);
     }
 
     public SingleThreadEventLoop getEventLoop() {
@@ -110,7 +70,7 @@ public class ChannelContext {
         try {
             selectableChannel.close();
         } finally {
-            invokeChannelClose();
+            pipeline.invokeChannelClose(this);
         }
     }
 

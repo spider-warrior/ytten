@@ -25,7 +25,7 @@ public class ServerDebugChannelHandler implements ChannelHandler {
 //            throw new RuntimeException("on purpose");
 //        }
         logger.info("server accept channel read: " + msg);
-        ctx.invokeChannelWrite("服务端当前时间: " + LocalDateTime.now());
+        ctx.getPipeline().invokeChannelWrite(ctx, "服务端当前时间: " + LocalDateTime.now());
         ctx.flush();
 
     }

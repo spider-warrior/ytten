@@ -66,7 +66,7 @@ public class MessageCodec implements ChannelHandler {
             } else {
                 throw new DecodeException("解析失败,未知消息类型: " +type);
             }
-            ctx.invokeNextChannelRead(ctx.getPipeline().nextHandler(this) , decodedMsg);
+            ctx.getPipeline().invokeNextChannelRead(ctx.getPipeline().nextHandler(this), ctx,  decodedMsg);
         }
     }
 
