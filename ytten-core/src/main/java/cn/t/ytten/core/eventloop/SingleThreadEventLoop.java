@@ -83,7 +83,11 @@ public class SingleThreadEventLoop implements Runnable {
                                         break;
                                     }
                                 } catch (Throwable t) {
-                                    logger.warning("读取消息异常, " + t);
+                                    if(t instanceof IOException) {
+                                        logger.info("连接断开: " + ctx.remoteAddress());
+                                    } else {
+                                        logger.warning("读取消息异常, " + t);
+                                    }
                                     //设定标志关闭连接
                                     lastReadLength = -1;
                                     break;

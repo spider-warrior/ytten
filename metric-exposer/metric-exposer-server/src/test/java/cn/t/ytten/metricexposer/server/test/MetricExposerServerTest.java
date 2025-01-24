@@ -8,7 +8,8 @@ import java.io.IOException;
 public class MetricExposerServerTest {
     public static void main(String[] args) throws IOException {
         SingleThreadEventLoop acceptLoop = new SingleThreadEventLoop("accept");
-        MetricExposerServer exposerServer = new MetricExposerServer(acceptLoop, acceptLoop);
+        SingleThreadEventLoop ioLoop = new SingleThreadEventLoop("io");
+        MetricExposerServer exposerServer = new MetricExposerServer(acceptLoop, ioLoop);
         exposerServer.start();
     }
 }
